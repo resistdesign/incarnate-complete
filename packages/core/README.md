@@ -4,7 +4,7 @@ Runtime Dependency Lifecycle Management for JavaScript.
 
 ## Install
 
-`npm i -S incarnate`
+`npm i -S @incarnate/core`
 
 ## API Docs
 
@@ -12,7 +12,7 @@ http://incarnate.resist.design
 
 ## Usage Example
 
-```jsx
+```ts
 import Incarnate from 'incarnate';
 
 // Declare your application dependencies.
@@ -23,92 +23,109 @@ const inc = new Incarnate({
       subMap: {
         user: {
           factory: () => ({
-            authToken: undefined
-          })
-        }
-      }
+            authToken: undefined,
+          }),
+        },
+      },
     },
     // Supply some services.
     services: {
       // Some services need authorization information.
       shared: {
-        user: 'state.user'
+        user: 'state.user',
       },
       subMap: {
         user: true,
         login: {
           factory: () => {
-            return async (username, password) => {
+            return async (username: string, password: string) => {
               // Make a login request, get the `authToken`.
               const fakeToken = `${username}:${password}`;
 
               // For demo purposes we'll use the `Buffer` API in node.js to base64 encode the credentials.
               return Buffer.from(fakeToken).toString('base64');
             };
-          }
+          },
         },
         accounts: {
           dependencies: {
-            user: 'user'
+            user: 'user',
           },
-          factory: ({dependencies: {user: {authToken = ''} = {}} = {}} = {}) => {
+          factory: ({ user: { authToken = '' } = {} } = {}) => {
             return async () => {
               // NOTE: IF we call this service method AFTER `login`,
               // the `authToken` will have been automatically updated,
               // in this service, by Incarnate.
               if (!authToken) {
-                throw new Error('The accounts service requires an authorization token but one was not supplied.');
+                throw new Error(
+                  'The accounts service requires an authorization token but one was not supplied.'
+                );
               }
 
               // Get a list of accounts with the `authToken` in the headers.
               console.log('Getting accounts with headers:', {
-                Authorization: `Bearer: ${authToken}`
+                Authorization: `Bearer: ${authToken}`,
               });
 
               return [
-                {name: 'Account 1'},
-                {name: 'Account 2'},
-                {name: 'Account 3'},
-                {name: 'Account 4'}
+                { name: 'Account 1' },
+                { name: 'Account 2' },
+                { name: 'Account 3' },
+                { name: 'Account 4' },
               ];
             };
-          }
-        }
-      }
+          },
+        },
+      },
     },
     // Expose some actions that call services and store the results in a nice, tidy, reproducible way.
     actions: {
       shared: {
         user: 'state.user',
-        loginService: 'services.login'
+        loginService: 'services.login',
       },
       subMap: {
         user: true,
         loginService: true,
         login: {
           dependencies: {
-            loginService: 'loginService'
+            loginService: 'loginService',
           },
           setters: {
-            setUser: 'user'
+            setUser: 'user',
           },
-          factory: ({dependencies: {loginService} = {}, setters: {setUser} = {}} = {}) => {
-            return async ({username, password} = {}) => {
+          factory: ({
+            loginService,
+            setUser,
+          }: {
+            loginService: (
+              username: string,
+              password: string
+            ) => Promise<string>;
+            setUser: (user: { [key: string]: any }) => void;
+          }) => {
+            return async ({
+              username,
+              password,
+            }: {
+              username: string;
+              password: string;
+            }) => {
               // Login
               const authToken = await loginService(username, password);
 
               // Store the `authToken`.
               setUser({
-                authToken
+                authToken,
               });
 
               return true;
             };
-          }
-        }
-      }
-    }
-  }
+          },
+        },
+      },
+    },
+  },
 });
 
 // Here's your app.
@@ -116,9 +133,10 @@ export default async function app() {
   // Get the Login Action.
   const loginAction = inc.getResolvedPath('actions.login');
   // Do the login.
-  const loginResult = await loginAction({
+
+  await loginAction({
     username: 'TestUser',
-    password: 'StopTryingToReadThis'
+    password: 'StopTryingToReadThis',
   });
   // Get the Accounts Service. It needs the User's `authToken`,
   // but you declared it as a Dependency,
