@@ -1,5 +1,5 @@
 # Incarnate
 
-![CI](https://github.com/resistdesign/incarnate-complete/workflows/CI/badge.svg)
+![Core CI](https://github.com/resistdesign/incarnate-complete/workflows/Core%20CI/badge.svg)
 
 A monorepo for all incarnate packages.
