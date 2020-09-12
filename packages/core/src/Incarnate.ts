@@ -1,7 +1,8 @@
 import HashMatrix, {HashMatrixPathPartType} from './HashMatrix';
 import LifePod from './LifePod';
-import DependencyDeclaration from './DependencyDeclaration';
 import SubMapDeclaration from './SubMapDeclaration';
+import {ObjectOf} from './ConfigurableInstance';
+import {DependencyDeclaration} from './DependencyDeclaration';
 
 const STANDARD_DEPENDENCY_NAMES = {
     GLOBAL: 'GLOBAL'
@@ -33,7 +34,7 @@ export default class Incarnate extends HashMatrix {
      * The map of dependency and subMap declarations.
      * @type {Object.<DependencyDeclaration|SubMapDeclaration|Incarnate|LifePod|HashMatrix>}
      * */
-    subMap;
+    subMap?: ObjectOf<DependencyDeclaration | SubMapDeclaration | Incarnate | LifePod | HashMatrix>;
 
     _parsedSubMap = {};
 
@@ -41,7 +42,7 @@ export default class Incarnate extends HashMatrix {
      * If `true`, `LifePod` factories will NOT be called until **none** of the `dependencies` are `undefined`.
      * @type {boolean}
      * */
-    strict;
+    strict?: boolean;
 
     /**
      * @param {SubMapDeclaration} subMapDeclaration The `SubMapDeclaration` to be managed.
@@ -59,7 +60,7 @@ export default class Incarnate extends HashMatrix {
         };
     }
 
-    createLifePod(name, dependencyDeclaration = {}) {
+    createLifePod(name: string, dependencyDeclaration: DependencyDeclaration = {}) {
         const {
             dependencies = {},
             getters = {},
@@ -69,8 +70,8 @@ export default class Incarnate extends HashMatrix {
             strict = this.strict,
             pathDelimiter = this.pathDelimiter,
             ...otherConfig
-        } = dependencyDeclaration;
-        const newDependencyDeclaration = new DependencyDeclaration({
+        }: DependencyDeclaration = dependencyDeclaration;
+        const newDependencyDeclaration: DependencyDeclaration = {
             ...otherConfig,
             name: this.getPathString(name, this.name),
             targetPath: name,
@@ -82,7 +83,7 @@ export default class Incarnate extends HashMatrix {
             listeners: this.createFromMap(listeners, this.createListener),
             strict,
             pathDelimiter
-        });
+        };
 
         return new LifePod(newDependencyDeclaration);
     }

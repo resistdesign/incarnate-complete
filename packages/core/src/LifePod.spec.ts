@@ -1,5 +1,4 @@
 import expect from 'expect.js';
-import DependencyDeclaration from './DependencyDeclaration';
 import LifePod from './LifePod';
 
 export default {
@@ -9,11 +8,11 @@ export default {
     },
     'getValue': {
       'should resolve a synchronous value': () => {
-        const lifePod = new LifePod(new DependencyDeclaration({
+        const lifePod = new LifePod({
           factory: () => {
             return 'Tomato';
           }
-        }));
+        });
         const testDep = lifePod.getValue();
 
         expect(testDep).to.equal('Tomato');
@@ -21,11 +20,11 @@ export default {
     },
     'getValueAsync': {
       'should resolve an asynchronous value': async () => {
-        const lifePod = new LifePod(new DependencyDeclaration({
+        const lifePod = new LifePod({
           factory: async () => {
             return 'Tomato';
           }
-        }));
+        });
         const testDep = await lifePod.getValueAsync();
 
         expect(testDep).to.equal('Tomato');

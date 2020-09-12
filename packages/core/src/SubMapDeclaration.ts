@@ -1,20 +1,21 @@
-import DependencyDeclaration from './DependencyDeclaration';
-import ConfigurableInstance from './ConfigurableInstance';
+import {IConfigurableInstance, ObjectOf} from './ConfigurableInstance';
+import {DependencyDeclaration} from './DependencyDeclaration';
+import {HashMatrixPathPartType} from './HashMatrix';
 
 /**
  * Declare an available map of dependencies.
  * */
-export default class SubMapDeclaration extends ConfigurableInstance {
-  /**
-   * The map of dependencies.
-   * @type {Object.<DependencyDeclaration>}
-   * */
-  subMap;
+export interface SubMapDeclaration extends IConfigurableInstance {
+    /**
+     * The map of dependencies.
+     * @type {Object.<DependencyDeclaration>}
+     * */
+    subMap?: ObjectOf<DependencyDeclaration>;
 
-  /**
-   * The dependencies from the current level that should be shared to the `subMap`.
-   * Keys are the keys from the `subMap`, values are the paths to the dependencies to be shared.
-   * @type {Object.<string>}
-   * */
-  shared;
+    /**
+     * The dependencies from the current level that should be shared to the `subMap`.
+     * Keys are the keys from the `subMap`, values are the paths to the dependencies to be shared.
+     * @type {Object.<string>}
+     * */
+    shared?: ObjectOf<HashMatrixPathPartType>;
 }

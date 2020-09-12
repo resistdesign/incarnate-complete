@@ -1,7 +1,8 @@
-import DependencyDeclaration from './DependencyDeclaration';
 import HashMatrix, {HashMatrixPathPartType} from './HashMatrix';
+import {DependencyDeclaration} from './DependencyDeclaration';
+import {ObjectOf} from './ConfigurableInstance';
 
-const getMergedDependencies = (depStructure = {}, merge) => {
+const getMergedDependencies = (depStructure: DependencyDeclaration = {}, merge?: boolean) => {
     if (merge === false) {
         return depStructure;
     }
@@ -27,34 +28,34 @@ const getMergedDependencies = (depStructure = {}, merge) => {
  * A container used to resolve a `DependencyDeclaration`.
  * @see DependencyDeclaration
  * */
-export default class LifePod extends HashMatrix {
+export default class LifePod extends HashMatrix implements DependencyDeclaration {
     static DEFAULT_NAME = 'LifePod';
 
     static ERROR_MESSAGES = {
         RESOLUTION_TIMEOUT: 'RESOLUTION_TIMEOUT'
     };
 
-    _dependencies;
+    _dependencies?: ObjectOf<HashMatrix>;
 
     /**
      * @returns {Object.<HashMatrix>} A map of named dependencies.
      * */
-    get dependencies() {
+    get dependencies(): ObjectOf<HashMatrix> | undefined {
         return this._dependencies;
     }
 
     /**
      * @param {Object.<HashMatrix>} value A map of named dependencies.
      * */
-    set dependencies(value) {
-        if (this._dependencies instanceof Object) {
+    set dependencies(value: ObjectOf<HashMatrix> | undefined) {
+        if (!!this._dependencies) {
             this.removeDependencyMapChangeHandlers(this._dependencies);
             this.removeDependencyMapErrorHandlers(this._dependencies);
         }
 
         this._dependencies = value;
 
-        if (this._dependencies instanceof Object) {
+        if (!!this._dependencies) {
             this.addDependencyMapChangeHandlers(this._dependencies);
             this.addDependencyMapErrorHandlers(this._dependencies);
         }
@@ -65,28 +66,28 @@ export default class LifePod extends HashMatrix {
      * `getter(path = ''):*`
      * @type {Object.<Function>}
      * */
-    getters;
+    getters?: ObjectOf<Function>;
 
     /**
      * A map of named setters.
      * `setter(value = *, subPath = '')`
      * @type {Object.<Function>}
      * */
-    setters;
+    setters?: ObjectOf<Function>;
 
     /**
      * A map of named invalidators.
      * `invalidator(subPath = '')`
      * @type {Object.<Function>}
      * */
-    invalidators;
+    invalidators?: ObjectOf<Function>;
 
     /**
      * A map of named change handler receivers.
      * `listen(handler):Function (unlisten)`
      * @type {Object.<Function>}
      * */
-    listeners;
+    listeners?: ObjectOf<Function>;
 
     /**
      * The factory function used to create the value of the dependency.
@@ -94,35 +95,33 @@ export default class LifePod extends HashMatrix {
      * @param {DependencyDeclaration} dependencyValues A `DependencyDeclaration` with resolved values rather than paths.
      * @returns {*|Promise} The value of the dependency.
      * */
-    factory;
+    factory?: DependencyDeclaration['factory'];
 
     /**
      * If `true`, the `factory` is NOT called until **none** of the `dependencies` are `undefined`.
      * @type {boolean}
      * */
-    strict;
+    strict?: boolean;
 
     /**
      * Always call the `factory` when calling `getPath`, even if there is an existing value.
      * @type {boolean}
      * */
-    noCache;
+    noCache?: boolean;
 
     /**
      * Merge all dependency types into one `Object` when being passed to the `factory`. Default: `true`
      * @type {boolean}
      * */
-    mergeDeps;
+    mergeDeps?: boolean;
 
     /**
      * @param {DependencyDeclaration} dependencyDeclaration The `DependencyDeclaration` to be resolved.
      * */
-    constructor(dependencyDeclaration = new DependencyDeclaration()) {
-        const {
-            dependencies = [],
-            ...cleanDependencyDeclaration
-        } = dependencyDeclaration;
-
+    constructor({
+                    dependencies = [],
+                    ...cleanDependencyDeclaration
+                }: DependencyDeclaration = {}) {
         super(cleanDependencyDeclaration);
 
         this.dependencies = dependencies;
@@ -132,89 +131,91 @@ export default class LifePod extends HashMatrix {
         this.invalidate();
     };
 
-    addDependencyChangeHandler = (dependency) => {
+    addDependencyChangeHandler = (dependency?: HashMatrix) => {
         if (dependency instanceof HashMatrix) {
             dependency.addChangeHandler('', this.handleDependencyChange);
         }
     };
 
-    removeDependencyChangeHandler = (dependency) => {
+    removeDependencyChangeHandler = (dependency?: HashMatrix) => {
         if (dependency instanceof HashMatrix) {
             dependency.removeChangeHandler('', this.handleDependencyChange);
         }
     };
 
-    addDependencyMapChangeHandlers = (dependencyMap = {}) => {
+    addDependencyMapChangeHandlers = (dependencyMap: ObjectOf<HashMatrix> = {}) => {
         Object
             .keys(dependencyMap)
             .forEach(k => this.addDependencyChangeHandler(dependencyMap[k]));
     };
 
-    removeDependencyMapChangeHandlers = (dependencyMap = {}) => {
+    removeDependencyMapChangeHandlers = (dependencyMap: ObjectOf<HashMatrix> = {}) => {
         Object
             .keys(dependencyMap)
             .forEach(k => this.removeDependencyChangeHandler(dependencyMap[k]));
     };
 
-    handleDependencyError = (error, path, causePath, target) => {
+    handleDependencyError = (error?: any, path?: HashMatrixPathPartType, causePath?: string, target?: string) => {
         const dependencyError = new Error('A dependency failed to resolve.');
 
-        dependencyError.source = {
-            error,
-            path,
-            causePath,
-            target
-        };
+        if (typeof error === 'object') {
+            (dependencyError as ObjectOf<any>).source = {
+                error,
+                path,
+                causePath,
+                target
+            };
+        }
 
         this.setError([], dependencyError);
     };
 
-    addDependencyErrorHandler = (dependency) => {
+    addDependencyErrorHandler = (dependency?: HashMatrix) => {
         if (dependency instanceof HashMatrix) {
             dependency.addErrorHandler('', this.handleDependencyError);
         }
     };
 
-    removeDependencyErrorHandler = (dependency) => {
+    removeDependencyErrorHandler = (dependency?: HashMatrix) => {
         if (dependency instanceof HashMatrix) {
             dependency.removeErrorHandler('', this.handleDependencyError);
         }
     };
 
-    addDependencyMapErrorHandlers = (dependencyMap = {}) => {
+    addDependencyMapErrorHandlers = (dependencyMap: ObjectOf<HashMatrix | undefined> = {}) => {
         Object
             .keys(dependencyMap)
             .forEach(k => this.addDependencyErrorHandler(dependencyMap[k]));
     };
 
-    removeDependencyMapErrorHandlers = (dependencyMap = {}) => {
+    removeDependencyMapErrorHandlers = (dependencyMap: ObjectOf<HashMatrix | undefined> = {}) => {
         Object
             .keys(dependencyMap)
             .forEach(k => this.removeDependencyErrorHandler(dependencyMap[k]));
     };
 
-    resolveDependency(dependency) {
+    resolveDependency(dependency?: HashMatrix) {
         if (dependency instanceof HashMatrix) {
             return dependency.getValue();
         }
     }
 
-    resolveDependencyMap(dependencyMap = {}) {
-        const resolvedDependencyDeclaration = new DependencyDeclaration();
-        const dependencyValueMap = {};
-
-        resolvedDependencyDeclaration.dependencies = dependencyValueMap;
-        resolvedDependencyDeclaration.getters = this.getters;
-        resolvedDependencyDeclaration.setters = this.setters;
-        resolvedDependencyDeclaration.invalidators = this.invalidators;
-        resolvedDependencyDeclaration.listeners = this.listeners;
+    resolveDependencyMap(dependencyMap: ObjectOf<HashMatrix | undefined> = {}): DependencyDeclaration | void {
+        const dependencyValueMap: ObjectOf<any> = {};
+        const resolvedDependencyDeclaration: DependencyDeclaration = {
+            dependencies: dependencyValueMap,
+            getters: this.getters,
+            setters: this.setters,
+            invalidators: this.invalidators,
+            listeners: this.listeners
+        };
 
         for (const k in dependencyMap) {
-            const dep = dependencyMap[k];
+            const dep: HashMatrix | undefined = dependencyMap[k];
             const depValue = this.resolveDependency(dep);
 
             if (this.strict && typeof depValue === 'undefined') {
-                return undefined;
+                return;
             } else {
                 dependencyValueMap[k] = depValue;
             }
@@ -223,8 +224,8 @@ export default class LifePod extends HashMatrix {
         return resolvedDependencyDeclaration;
     }
 
-    async handleFactoryPromise(factoryPromise) {
-        if (factoryPromise instanceof Promise) {
+    async handleFactoryPromise(factoryPromise: Promise<any>) {
+        if (!!factoryPromise) {
             let value = undefined;
 
             try {
@@ -287,7 +288,7 @@ export default class LifePod extends HashMatrix {
     /**
      * @override
      * */
-    getPath(path) {
+    getPath(path: HashMatrixPathPartType) {
         const directValue = super.getPath([]);
 
         let value;
@@ -316,7 +317,7 @@ export default class LifePod extends HashMatrix {
         const pathString = this.getPathString(path);
 
         return new Promise((res, rej) => {
-            let timeoutIdentifier: number | undefined = undefined;
+            let timeoutIdentifier: any = undefined;
 
             const handlers = {
                 remove: () => {
@@ -346,7 +347,7 @@ export default class LifePod extends HashMatrix {
                         });
                     }
                 },
-                onError: e => {
+                onError: (e: any) => {
                     handlers.remove();
 
                     rej(e);
@@ -367,7 +368,7 @@ export default class LifePod extends HashMatrix {
     /**
      * The same as `getValue` but asynchronous and will wait for a value.
      * */
-    async getValueAsync(timeoutMS) {
+    async getValueAsync(timeoutMS?: number) {
         return this.getPathAsync([], timeoutMS);
     }
 }

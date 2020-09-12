@@ -5,6 +5,7 @@
   ],
   "compilerOptions": {
     "module": "esnext",
+    "target": "ES5",
     "lib": [
       "dom",
       "esnext"

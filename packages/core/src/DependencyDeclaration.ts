@@ -1,38 +1,38 @@
 /**
  * Declare an available dependency with various types of requirements.
  * */
-import ConfigurableInstance, {ObjectOf} from './ConfigurableInstance';
+import {IConfigurableInstance, ObjectOf} from './ConfigurableInstance';
 
-export default class DependencyDeclaration extends ConfigurableInstance {
+export interface DependencyDeclaration extends IConfigurableInstance {
     /**
      * A map of named dependencies.
      * @type {Object.<string|*>}
      * */
-    dependencies?: ObjectOf<any>;
+    dependencies?: ObjectOf<string | any>;
 
     /**
      * A map of named getters.
      * @type {Object.<string|Function>}
      * */
-    getters?: ObjectOf<Function>;
+    getters?: ObjectOf<string | Function>;
 
     /**
      * A map of named setters.
      * @type {Object.<string|Function>}
      * */
-    setters?: ObjectOf<Function>;
+    setters?: ObjectOf<string | Function>;
 
     /**
      * A map of named invalidators.
      * @type {Object.<string|Function>}
      * */
-    invalidators?: ObjectOf<Function>;
+    invalidators?: ObjectOf<string | Function>;
 
     /**
      * A map of named change handler receivers.
      * @type {Object.<string|Function>}
      * */
-    listeners?: ObjectOf<Function>;
+    listeners?: ObjectOf<string | Function>;
 
     /**
      * The factory function used to create the value of the dependency.
