@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "private": true,
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "repository": "git@github.com:resistdesign/incarnate-complete.git",
+  "author": "Resist Design"
 }
