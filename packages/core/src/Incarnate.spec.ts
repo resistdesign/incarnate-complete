@@ -1,9 +1,6 @@
 import expect from 'expect.js';
-import Incarnate, {
-  HashMatrix,
-  SubMapDeclaration,
-  LifePod
-} from './index';
+import Incarnate, { HashMatrix, LifePod } from './index';
+// @ts-ignore
 import DemoApp from '../demo/app';
 
 export default {
@@ -24,76 +21,76 @@ export default {
 
       expect(ok).to.equal(true);
     },
-    'getDependency': {
+    getDependency: {
       'should get a declared dependency': () => {
-        const inc = new Incarnate(new SubMapDeclaration({
+        const inc = new Incarnate({
           subMap: {
             testDep: {
-              factory: () => 'Tomato'
-            }
-          }
-        }));
+              factory: () => 'Tomato',
+            },
+          },
+        });
         const dep = inc.getDependency('testDep');
 
         expect(dep).to.be.a(LifePod);
       },
       'should get an undeclared dependency': () => {
-        const inc = new Incarnate(new SubMapDeclaration({
-          subMap: {}
-        }));
+        const inc = new Incarnate({
+          subMap: {},
+        });
         const dep = inc.getDependency('testDep');
 
         expect(dep).to.be.a(HashMatrix);
-      }
+      },
     },
-    'getResolvedPath': {
+    getResolvedPath: {
       'should resolve a synchronous dependency': () => {
-        const inc = new Incarnate(new SubMapDeclaration({
+        const inc = new Incarnate({
           subMap: {
             testDep: {
               factory: () => {
                 return 'Tomato';
-              }
-            }
-          }
-        }));
+              },
+            },
+          },
+        });
         const testDep = inc.getResolvedPath('testDep');
 
         expect(testDep).to.equal('Tomato');
-      }
+      },
     },
-    'getResolvedPathAsync': {
+    getResolvedPathAsync: {
       'should resolve an asynchronous dependency': async () => {
-        const inc = new Incarnate(new SubMapDeclaration({
+        const inc = new Incarnate({
           subMap: {
             testDep: {
               factory: async () => {
                 return 'Tomato';
-              }
-            }
-          }
-        }));
+              },
+            },
+          },
+        });
         const testDep = await inc.getResolvedPathAsync('testDep');
 
         expect(testDep).to.equal('Tomato');
       },
       'should not hang the process when timing out': async () => {
-        const inc = new Incarnate(new SubMapDeclaration({
+        const inc = new Incarnate({
           subMap: {
             dep1: {
-              factory: () => undefined
+              factory: () => undefined,
             },
             testDep: {
               dependencies: {
-                dep1: 'dep1'
+                dep1: 'dep1',
               },
               strict: true,
               factory: async () => {
                 return 'Tomato';
-              }
-            }
-          }
-        }));
+              },
+            },
+          },
+        });
         const testDepPod = inc.getDependency('testDep');
 
         let resError = undefined;
@@ -105,23 +102,24 @@ export default {
         }
 
         expect(resError).to.be.an(Object);
-        expect(testDepPod.resolving).to.equal(false);
-      }
+        expect(testDepPod).to.be.a(LifePod);
+        expect((testDepPod as LifePod).resolving).to.equal(false);
+      },
     },
-    'createIncarnate': {
+    createIncarnate: {
       'should throw when a required, shared dependency is not satisfied': () => {
         let missingSharedDependencyError;
 
         try {
-          const inc = new Incarnate(new SubMapDeclaration({
+          const inc = new Incarnate({
             subMap: {
               needsShared: {
                 subMap: {
-                  missing: true
-                }
-              }
-            }
-          }));
+                  missing: true,
+                },
+              },
+            },
+          });
 
           inc.getDependency('needsShared');
         } catch (error) {
@@ -133,31 +131,31 @@ export default {
           Incarnate.ERRORS.UNSATISFIED_SHARED_DEPENDENCY
         );
         expect(missingSharedDependencyError.data).to.equal('missing');
-      }
+      },
     },
-    'addErrorHandler': {
+    addErrorHandler: {
       'should call the handler when an asynchronous error occurs at the given path': async () => {
         const asyncNestedDepError = new Error('Error from `a.b`.');
-        const inc = new Incarnate(new SubMapDeclaration({
+        const inc = new Incarnate({
           subMap: {
             a: {
               subMap: {
                 b: {
                   factory: async () => {
                     throw asyncNestedDepError;
-                  }
-                }
-              }
+                  },
+                },
+              },
             },
             c: {
               dependencies: {
-                dep: 'a.b'
+                dep: 'a.b',
               },
               strict: true,
-              factory: () => true
-            }
-          }
-        }));
+              factory: () => true,
+            },
+          },
+        });
 
         try {
           await inc.getResolvedPathAsync('c');
@@ -165,14 +163,12 @@ export default {
           expect(true).to.equal(false);
         } catch (error) {
           const {
-            source: {
-              error: sourceError
-            }
+            source: { error: sourceError },
           } = error;
 
           expect(sourceError).to.equal(asyncNestedDepError);
         }
-      }
-    }
-  }
+      },
+    },
+  },
 };
