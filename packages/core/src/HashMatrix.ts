@@ -15,7 +15,7 @@ const INVALID = {};
 export default class HashMatrix extends ConfigurableInstance {
     static DEFAULT_NAME = 'HashMatrix';
     static DEFAULT_PATH_DELIMITER = '.';
-    static ERRORS = {
+    static ERRORS: ObjectOf<string> = {
         INVALID_PATH_DELIMITER: 'INVALID_PATH_DELIMITER'
     };
 
