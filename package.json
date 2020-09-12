@@ -1,0 +1,10 @@
+{
+  "name": "incarnate-complete",
+  "description": "A monorepo for all incarnate packages.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ]
+}
