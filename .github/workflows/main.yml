@@ -1,7 +1,13 @@
 name: CI
-on: [push]
+on:
+  push:
+    paths:
+      - 'packages/core/**'
 jobs:
-  build:
+  build-core:
+    defaults:
+      run:
+        working-directory: packages/core
     runs-on: ubuntu-latest
 
     steps:
