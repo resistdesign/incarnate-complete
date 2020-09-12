@@ -22,7 +22,7 @@
   "peerDependencies": {},
   "husky": {
     "hooks": {
-      "pre-commit": "tsdx lint"
+      "#pre-commit": "tsdx lint"
     }
   },
   "prettier": {
@@ -34,6 +34,8 @@
   "author": "Ryan Graff",
   "module": "dist/core.esm.js",
   "devDependencies": {
+    "@types/expect.js": "^0.3.29",
+    "expect.js": "^0.3.1",
     "husky": "^4.3.0",
     "tsdx": "^0.13.3",
     "tslib": "^2.0.1",
