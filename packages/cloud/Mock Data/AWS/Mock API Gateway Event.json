@@ -1,0 +1,17 @@
+{
+  "test": "TEST_EVENT",
+  "httpMethod": "POST",
+  "body": "[\"Arguments in JSON\"]",
+  "path": "/package/service/method-name",
+  "headers": {
+    "Content-Type": "application/json",
+    "Origin": "http://example.com"
+  },
+  "multiValueHeaders": {},
+  "requestContext": {
+    "test": "TEST_CONTEXT",
+    "identity": {
+      "test": "TEST_IDENTITY"
+    }
+  }
+}
