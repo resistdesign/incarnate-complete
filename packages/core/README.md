@@ -1,4 +1,6 @@
-# Incarnate [![Build Status](https://travis-ci.org/resistdesign/incarnate.svg?branch=master)](https://travis-ci.org/resistdesign/incarnate)
+# Incarnate
+
+![Core CI](https://github.com/resistdesign/incarnate-complete/workflows/Core%20CI/badge.svg)
 
 Runtime Dependency Lifecycle Management for JavaScript.
 
