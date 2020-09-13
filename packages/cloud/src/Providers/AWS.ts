@@ -1,5 +1,18 @@
 import { getRequestResponse } from './Common';
 import { ObjectOf } from '../../types/base';
+import { HandlerResponse, OriginProcessor } from './Utils';
+import { SubMapDeclaration } from '@incarnate/core';
+
+export interface IAWSCloudFunctionEvent {
+  httpMethod?: string;
+  headers?: ObjectOf<string>;
+  multiValueHeaders?: ObjectOf<string[]>;
+  path?: string;
+  body?: string;
+}
+export type IAWSCloudFunctionHandler = (
+  event: IAWSCloudFunctionEvent
+) => Promise<HandlerResponse>;
 
 /**
  * Create an Incarnate managed Lambda handler.
@@ -16,16 +29,13 @@ export default ({
   allowedPaths = [],
   allowedOrigin = '',
   dependencyResolutionTimeoutMS = 300000,
-} = {}) => {
-  return async (
-    event: {
-      httpMethod?: string;
-      headers?: ObjectOf<string>;
-      multiValueHeaders?: ObjectOf<string[]>;
-      path?: string;
-      body?: string;
-    } = {}
-  ) => {
+}: {
+  incarnateConfig?: SubMapDeclaration;
+  allowedPaths?: string[];
+  allowedOrigin?: OriginProcessor;
+  dependencyResolutionTimeoutMS?: number;
+} = {}): IAWSCloudFunctionHandler => {
+  return async (event: IAWSCloudFunctionEvent = {}) => {
     const {
       httpMethod = 'POST',
       headers = {},
@@ -34,7 +44,7 @@ export default ({
       body: bodyString = '[]',
     } = event;
 
-    return getRequestResponse({
+    return await getRequestResponse({
       incarnateConfig,
       allowedPaths,
       allowedOrigin,

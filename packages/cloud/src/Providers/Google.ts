@@ -1,7 +1,15 @@
 import { parse as ParseURL } from 'url';
 import { getRequestResponse } from './Common';
 import { ObjectOf } from '../../types/base';
+import { SubMapDeclaration } from '@incarnate/core';
+import { HandlerResponse, OriginProcessor } from './Utils';
 
+export interface IGoogleCloudFunctionRequest {
+  method?: string;
+  headers?: ObjectOf<string>;
+  url?: string;
+  rawBody?: string;
+}
 export interface IGoogleCloudFunctionResponse {
   set: (
     headerName: string,
@@ -10,6 +18,10 @@ export interface IGoogleCloudFunctionResponse {
   status: (statusCode: string | number) => IGoogleCloudFunctionResponse;
   send: (body: string) => IGoogleCloudFunctionResponse;
 }
+export type IGoogleCloudFunctionHandler = (
+  req: IGoogleCloudFunctionRequest,
+  res: IGoogleCloudFunctionResponse
+) => Promise<void>;
 
 /**
  * Create an Incarnate managed Google Cloud Function handler.
@@ -26,14 +38,14 @@ export default ({
   allowedPaths = [],
   allowedOrigin = '',
   dependencyResolutionTimeoutMS = 300000,
-} = {}) => {
+}: {
+  incarnateConfig?: SubMapDeclaration;
+  allowedPaths?: string[];
+  allowedOrigin?: OriginProcessor;
+  dependencyResolutionTimeoutMS?: number;
+} = {}): IGoogleCloudFunctionHandler => {
   return async (
-    req: {
-      method?: string;
-      headers?: ObjectOf<string>;
-      url?: string;
-      rawBody?: string;
-    } = {},
+    req: IGoogleCloudFunctionRequest = {},
     res: IGoogleCloudFunctionResponse
   ) => {
     const {
@@ -47,7 +59,7 @@ export default ({
       statusCode = 200,
       headers: responseHeaders = {},
       body = '',
-    } = await getRequestResponse({
+    }: HandlerResponse = await getRequestResponse({
       incarnateConfig,
       allowedPaths,
       allowedOrigin,

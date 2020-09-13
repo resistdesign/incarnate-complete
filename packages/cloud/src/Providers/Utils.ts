@@ -10,11 +10,9 @@ export interface HandlerResponse {
 export type AllowedOriginProcessor = (incomingOrigin: string) => boolean;
 export type OriginProcessor =
   | string
-  | string[]
   | RegExp
-  | RegExp[]
   | AllowedOriginProcessor
-  | AllowedOriginProcessor[];
+  | (string | RegExp | AllowedOriginProcessor)[];
 
 const CLEAN_CONTENT_TYPE_HEADER_NAME = 'content-type';
 const JSON_CONTENT_TYPE = 'application/json';

@@ -4,6 +4,7 @@ import {
   getCORSHeaders,
   getMethodNameIsPrivate,
   getResponse,
+  HandlerResponse,
   OriginProcessor,
 } from './Utils';
 import { DEP_NAMES, METHODS, PATH_DELIMITER } from './Constants';
@@ -51,7 +52,7 @@ export const getRequestResponse = async ({
   multiValueHeaders?: ObjectOf<string[]>;
   path?: string;
   bodyString?: string;
-} = {}) => {
+} = {}): Promise<HandlerResponse> => {
   const incomingHeaders = {
     ...headers,
     ...multiValueHeaders,
@@ -70,7 +71,11 @@ export const getRequestResponse = async ({
   const currentOrigin =
     incomingOrigin instanceof Array ? incomingOrigin[0] : incomingOrigin;
   const corsHeaders = getCORSHeaders(allowedOrigin, currentOrigin);
-  const getResponseWithCORS = (statusCode = 200, value?: any, headers = {}) => {
+  const getResponseWithCORS = (
+    statusCode = 200,
+    value?: any,
+    headers = {}
+  ): HandlerResponse => {
     return getResponse(statusCode, value, {
       ...corsHeaders,
       ...headers,
@@ -91,62 +96,60 @@ export const getRequestResponse = async ({
   const { subMap = {} } = incarnateConfig;
   const cleanPathParts = getCleanPathParts(path);
   const cleanPath = cleanPathParts.join(PATH_DELIMITER);
-  const inc = new Incarnate(
-    new SubMapDeclaration({
-      ...incarnateConfig,
-      pathDelimiter: PATH_DELIMITER,
-      subMap: {
-        [DEP_NAMES.INPUT]: {
-          subMap: {
-            [DEP_NAMES.HEADERS]: {
-              factory: () => incomingHeadersWithLowerCaseKeys,
+  const inc = new Incarnate({
+    ...incarnateConfig,
+    pathDelimiter: PATH_DELIMITER,
+    subMap: {
+      [DEP_NAMES.INPUT]: {
+        subMap: {
+          [DEP_NAMES.HEADERS]: {
+            factory: () => incomingHeadersWithLowerCaseKeys,
+          },
+          [DEP_NAMES.COOKIES]: {
+            dependencies: {
+              suppliedHeaders: DEP_NAMES.HEADERS,
             },
-            [DEP_NAMES.COOKIES]: {
-              dependencies: {
-                suppliedHeaders: DEP_NAMES.HEADERS,
-              },
-              factory: ({
-                suppliedHeaders = {},
-              }: { suppliedHeaders?: ObjectOf<string | string[]> } = {}) => {
-                const { cookie: cookieValue = '' } = suppliedHeaders;
-                const targetCookieString: string =
-                  cookieValue instanceof Array
-                    ? cookieValue[0] || ''
-                    : cookieValue;
+            factory: ({
+              suppliedHeaders = {},
+            }: { suppliedHeaders?: ObjectOf<string | string[]> } = {}) => {
+              const { cookie: cookieValue = '' } = suppliedHeaders;
+              const targetCookieString: string =
+                cookieValue instanceof Array
+                  ? cookieValue[0] || ''
+                  : cookieValue;
 
-                return ParseCookies(targetCookieString);
-              },
-            },
-            [DEP_NAMES.PATH]: {
-              factory: () => cleanPath,
-            },
-            [DEP_NAMES.EVENT]: {
-              factory: () => event,
-            },
-            [DEP_NAMES.CONTEXT]: {
-              dependencies: {
-                event: DEP_NAMES.EVENT,
-              },
-              factory: ({ event: { requestContext = {} } = {} } = {}) =>
-                requestContext,
-            },
-            [DEP_NAMES.IDENTITY]: {
-              dependencies: {
-                context: DEP_NAMES.CONTEXT,
-              },
-              factory: ({ context: { identity = {} } = {} } = {}) => identity,
+              return ParseCookies(targetCookieString);
             },
           },
-        },
-        [DEP_NAMES.PACKAGES]: {
-          shared: {
-            [DEP_NAMES.INPUT]: DEP_NAMES.INPUT,
+          [DEP_NAMES.PATH]: {
+            factory: () => cleanPath,
           },
-          subMap,
+          [DEP_NAMES.EVENT]: {
+            factory: () => event,
+          },
+          [DEP_NAMES.CONTEXT]: {
+            dependencies: {
+              event: DEP_NAMES.EVENT,
+            },
+            factory: ({ event: { requestContext = {} } = {} } = {}) =>
+              requestContext,
+          },
+          [DEP_NAMES.IDENTITY]: {
+            dependencies: {
+              context: DEP_NAMES.CONTEXT,
+            },
+            factory: ({ context: { identity = {} } = {} } = {}) => identity,
+          },
         },
       },
-    })
-  );
+      [DEP_NAMES.PACKAGES]: {
+        shared: {
+          [DEP_NAMES.INPUT]: DEP_NAMES.INPUT,
+        },
+        subMap,
+      },
+    },
+  });
   const [packageName, serviceName, methodName] = cleanPathParts;
   const methodNameIsPrivate = getMethodNameIsPrivate(methodName);
   const args = body instanceof Array ? body : [];
