@@ -1,8 +1,5 @@
 name: Cloud CI
-on:
-  push:
-    paths:
-      - 'packages/cloud/**'
+on: [push]
 jobs:
   build-cloud:
     defaults:
