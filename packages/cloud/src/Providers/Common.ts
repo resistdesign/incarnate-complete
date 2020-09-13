@@ -9,7 +9,7 @@ import {
 } from './Utils';
 import { DEP_NAMES, METHODS, PATH_DELIMITER } from './Constants';
 import Incarnate, { SubMapDeclaration } from '@incarnate/core';
-import ParseCookies from 'cookie';
+import { parse as ParseCookies } from 'cookie';
 import ServiceResponse, { IServiceResponse } from '../Utils/ServiceResponse';
 import toCamelCase from 'lodash.camelcase';
 import { ObjectOf } from '../../types/base';
