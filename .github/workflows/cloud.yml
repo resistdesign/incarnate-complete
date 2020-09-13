@@ -1,5 +1,6 @@
 name: Cloud CI
 on:
+  workflow_dispatch: true
   push:
     paths:
       - 'packages/cloud/**'
