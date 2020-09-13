@@ -58,10 +58,14 @@ export default class HashMatrix extends ConfigurableInstance {
    * The `string` used to delimit all paths.
    * @type {string}
    * */
-  pathDelimiter: string = HashMatrix.DEFAULT_PATH_DELIMITER;
+  pathDelimiter?: string;
 
-  constructor(config = {}) {
+  constructor(config: ObjectOf<any> = {}) {
     super(config);
+
+    if (typeof this.pathDelimiter !== 'string') {
+      this.pathDelimiter = HashMatrix.DEFAULT_PATH_DELIMITER;
+    }
 
     this._setDefaultName();
   }
@@ -225,7 +229,7 @@ export default class HashMatrix extends ConfigurableInstance {
       ? [...path]
       : path === ''
       ? []
-      : `${path}`.split(this.pathDelimiter);
+      : `${path}`.split(this.pathDelimiter as string);
   }
 
   getPathArray(

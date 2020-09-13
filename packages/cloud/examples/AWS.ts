@@ -1,8 +1,8 @@
-import { AWS } from '../src';
+import { AWS } from '@incarnate/cloud';
 
 module.exports = {
-  handler: AWS(
-    {
+  handler: AWS({
+    incarnateConfig: {
       subMap: {
         package: {
           subMap: {
@@ -17,7 +17,7 @@ module.exports = {
         },
       },
     },
-    ['/package/service/method'],
-    'https://example.com'
-  ),
+    allowedPaths: ['/package/service/method'],
+    allowedOrigin: 'https://example.com',
+  }),
 };

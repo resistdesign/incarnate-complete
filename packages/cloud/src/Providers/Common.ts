@@ -4,18 +4,15 @@ import {
   getCORSHeaders,
   getMethodNameIsPrivate,
   getResponse,
+  HandlerResponse,
+  OriginProcessor,
 } from './Utils';
 import { DEP_NAMES, METHODS, PATH_DELIMITER } from './Constants';
-import Incarnate, { SubMapDeclaration } from 'incarnate';
-import ParseCookies from 'cookie';
-import ServiceResponse from '../Utils/ServiceResponse';
+import Incarnate, { SubMapDeclaration } from '@incarnate/core';
+import { parse as ParseCookies } from 'cookie';
+import ServiceResponse, { IServiceResponse } from '../Utils/ServiceResponse';
 import toCamelCase from 'lodash.camelcase';
-
-/**
- * @typedef {Function} AllowedOriginProcessor
- * @param {string} incomingOrigin The current origin of the incoming request.
- * @returns {boolean} Whether or not the `incomingOrigin` is allowed.
- * */
+import { ObjectOf } from '../../types/base';
 
 /**
  * The generic request handler.
@@ -44,7 +41,18 @@ export const getRequestResponse = async ({
   multiValueHeaders = {},
   path = '',
   bodyString = '[]',
-} = {}) => {
+}: {
+  incarnateConfig?: SubMapDeclaration;
+  allowedPaths?: string[];
+  allowedOrigin?: OriginProcessor;
+  dependencyResolutionTimeoutMS?: number;
+  event?: ObjectOf<any>;
+  httpMethod?: string;
+  headers?: ObjectOf<string>;
+  multiValueHeaders?: ObjectOf<string[]>;
+  path?: string;
+  bodyString?: string;
+} = {}): Promise<HandlerResponse> => {
   const incomingHeaders = {
     ...headers,
     ...multiValueHeaders,
@@ -59,15 +67,15 @@ export const getRequestResponse = async ({
   const {
     // IMPORTANT: Use lowercase header key.
     origin: incomingOrigin = '',
-  } = incomingHeadersWithLowerCaseKeys;
+  }: ObjectOf<string | string[]> = incomingHeadersWithLowerCaseKeys;
   const currentOrigin =
     incomingOrigin instanceof Array ? incomingOrigin[0] : incomingOrigin;
   const corsHeaders = getCORSHeaders(allowedOrigin, currentOrigin);
   const getResponseWithCORS = (
     statusCode = 200,
-    value = undefined,
+    value?: any,
     headers = {}
-  ) => {
+  ): HandlerResponse => {
     return getResponse(statusCode, value, {
       ...corsHeaders,
       ...headers,
@@ -88,56 +96,60 @@ export const getRequestResponse = async ({
   const { subMap = {} } = incarnateConfig;
   const cleanPathParts = getCleanPathParts(path);
   const cleanPath = cleanPathParts.join(PATH_DELIMITER);
-  const inc = new Incarnate(
-    new SubMapDeclaration({
-      ...incarnateConfig,
-      pathDelimiter: PATH_DELIMITER,
-      subMap: {
-        [DEP_NAMES.INPUT]: {
-          subMap: {
-            [DEP_NAMES.HEADERS]: {
-              factory: () => incomingHeaders,
+  const inc = new Incarnate({
+    ...incarnateConfig,
+    pathDelimiter: PATH_DELIMITER,
+    subMap: {
+      [DEP_NAMES.INPUT]: {
+        subMap: {
+          [DEP_NAMES.HEADERS]: {
+            factory: () => incomingHeadersWithLowerCaseKeys,
+          },
+          [DEP_NAMES.COOKIES]: {
+            dependencies: {
+              suppliedHeaders: DEP_NAMES.HEADERS,
             },
-            [DEP_NAMES.COOKIES]: {
-              dependencies: {
-                suppliedHeaders: DEP_NAMES.HEADERS,
-              },
-              factory: ({ suppliedHeaders = {} } = {}) => {
-                const { Cookie: cookieString = '' } = suppliedHeaders;
+            factory: ({
+              suppliedHeaders = {},
+            }: { suppliedHeaders?: ObjectOf<string | string[]> } = {}) => {
+              const { cookie: cookieValue = '' } = suppliedHeaders;
+              const targetCookieString: string =
+                cookieValue instanceof Array
+                  ? cookieValue[0] || ''
+                  : cookieValue;
 
-                return ParseCookies(cookieString);
-              },
-            },
-            [DEP_NAMES.PATH]: {
-              factory: () => cleanPath,
-            },
-            [DEP_NAMES.EVENT]: {
-              factory: () => event,
-            },
-            [DEP_NAMES.CONTEXT]: {
-              dependencies: {
-                event: DEP_NAMES.EVENT,
-              },
-              factory: ({ event: { requestContext = {} } = {} } = {}) =>
-                requestContext,
-            },
-            [DEP_NAMES.IDENTITY]: {
-              dependencies: {
-                context: DEP_NAMES.CONTEXT,
-              },
-              factory: ({ context: { identity = {} } = {} } = {}) => identity,
+              return ParseCookies(targetCookieString);
             },
           },
-        },
-        [DEP_NAMES.PACKAGES]: {
-          shared: {
-            [DEP_NAMES.INPUT]: DEP_NAMES.INPUT,
+          [DEP_NAMES.PATH]: {
+            factory: () => cleanPath,
           },
-          subMap,
+          [DEP_NAMES.EVENT]: {
+            factory: () => event,
+          },
+          [DEP_NAMES.CONTEXT]: {
+            dependencies: {
+              event: DEP_NAMES.EVENT,
+            },
+            factory: ({ event: { requestContext = {} } = {} } = {}) =>
+              requestContext,
+          },
+          [DEP_NAMES.IDENTITY]: {
+            dependencies: {
+              context: DEP_NAMES.CONTEXT,
+            },
+            factory: ({ context: { identity = {} } = {} } = {}) => identity,
+          },
         },
       },
-    })
-  );
+      [DEP_NAMES.PACKAGES]: {
+        shared: {
+          [DEP_NAMES.INPUT]: DEP_NAMES.INPUT,
+        },
+        subMap,
+      },
+    },
+  });
   const [packageName, serviceName, methodName] = cleanPathParts;
   const methodNameIsPrivate = getMethodNameIsPrivate(methodName);
   const args = body instanceof Array ? body : [];
@@ -145,7 +157,7 @@ export const getRequestResponse = async ({
   if (!!packageName && !!serviceName && !!methodName && !methodNameIsPrivate) {
     const servicePath = [DEP_NAMES.PACKAGES, packageName, serviceName];
 
-    let serviceInstance = {};
+    let serviceInstance: ObjectOf<any> = {};
 
     try {
       serviceInstance = await inc.getResolvedPathAsync(
@@ -158,9 +170,9 @@ export const getRequestResponse = async ({
         data,
         error: directError,
         source: {
-          error: { message: sourceMessage } = {},
-          path,
-          causePath,
+          error: { message: sourceMessage = undefined } = {},
+          path = undefined,
+          causePath = undefined,
         } = {},
       } = error || {};
       const responseData =
@@ -177,7 +189,7 @@ export const getRequestResponse = async ({
                 causePath,
               },
             };
-      const { statusCode = 500 } = responseData;
+      const { statusCode = 500 } = responseData as IServiceResponse;
 
       return getResponseWithCORS(statusCode, responseData);
     }

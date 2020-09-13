@@ -301,7 +301,7 @@ export default class Incarnate extends HashMatrix {
     const dep = this.getDependency(path);
 
     if (dep instanceof LifePod) {
-      return dep.getValueAsync(timeoutMS);
+      return await dep.getValueAsync(timeoutMS);
     } else {
       return this.getPath(path);
     }

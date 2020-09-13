@@ -1,12 +1,14 @@
-/**
- * @typedef {Object} ISystemsManager
- * @property {Function} getParameter
- * */
+import { ConfigurableInstance } from '@incarnate/core';
+import { ObjectOf } from '../../../types/base';
+
+export interface ISystemsManager {
+  getParameter: Function;
+}
 
 /**
  * Load named configurations from parameter storage.
  * */
-export default class ConfigLoader {
+export default class ConfigLoader extends ConfigurableInstance {
   static getFullPath = (basePath = '', name = '') => {
     return `${basePath}/${name}`.replace(/\/\//g, '/');
   };
@@ -15,19 +17,15 @@ export default class ConfigLoader {
    * The base path for all configurations to be loaded.
    * @type {string}
    * */
-  basePath;
+  basePath?: string;
 
   /**
    * The Systems Manager instance.
    * @type {ISystemsManager}
    * */
-  ssm;
+  ssm?: ISystemsManager;
 
-  _cache = {};
-
-  constructor(config = {}) {
-    Object.assign(this, config);
-  }
+  _cache: ObjectOf<any> = {};
 
   /**
    * Load a configuration by name.
@@ -40,7 +38,7 @@ export default class ConfigLoader {
 
     if (useCache && this._cache.hasOwnProperty(name)) {
       configData = this._cache[name];
-    } else {
+    } else if (!!this.ssm) {
       const {
         Parameter: { Value },
       } = await this.ssm
@@ -54,6 +52,8 @@ export default class ConfigLoader {
       if (useCache) {
         this._cache[name] = configData;
       }
+    } else {
+      throw new Error('ssm is required.');
     }
 
     return configData;

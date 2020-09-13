@@ -14,30 +14,29 @@ http://cloud.incarnate.resist.design
 
 ## Usage
 
-```js
-import {AWS} from 'incarnate-cloud';
+```ts
+import { AWS } from '@incarnate/cloud';
 
 module.exports = {
-  handler: AWS(
-    {
+  handler: AWS({
+    incarnateConfig: {
       subMap: {
         package: {
           subMap: {
             service: {
               factory: () => {
                 return {
-                  method: async arg1 => `Received: ${arg1}`
+                  method: async arg1 => `Received: ${arg1}`,
                 };
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     },
-    [
-      '/package/service/method'
-    ],
-    'https://example.com'
-  )
+    allowedPaths: ['/package/service/method'],
+    allowedOrigin: 'https://example.com',
+  }),
 };
+
 ```

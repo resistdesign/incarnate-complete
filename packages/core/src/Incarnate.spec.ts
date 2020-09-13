@@ -21,6 +21,29 @@ export default {
 
       expect(ok).to.equal(true);
     },
+    'should allow custom path delimiters': async () => {
+      const mockDepValue = 'MOCK_DEP_VALUE';
+      // IMPORTANT: Should not be '.', which is just the default.
+      const customPathDelimiter = '/';
+      const inc = new Incarnate({
+        pathDelimiter: customPathDelimiter,
+        subMap: {
+          level2: {
+            subMap: {
+              testDep: {
+                factory: () => mockDepValue,
+              },
+            },
+          },
+        },
+      });
+      const depValue = await inc.getResolvedPathAsync(
+        ['level2', 'testDep'].join(customPathDelimiter),
+        500
+      );
+
+      expect(depValue).to.equal(mockDepValue);
+    },
     getDependency: {
       'should get a declared dependency': () => {
         const inc = new Incarnate({
@@ -104,6 +127,72 @@ export default {
         expect(resError).to.be.an(Object);
         expect(testDepPod).to.be.a(LifePod);
         expect((testDepPod as LifePod).resolving).to.equal(false);
+      },
+      'should supply dependencies from a shared subMap': async () => {
+        const sharedSubMapDepValue = 'SHARED_SUBMAP_DEP_VALUE';
+        const inc = new Incarnate({
+          subMap: {
+            other: {
+              subMap: {
+                dep1: {
+                  factory: () => sharedSubMapDepValue,
+                },
+              },
+            },
+            main: {
+              shared: {
+                other: 'other',
+              },
+              subMap: {
+                testDep: {
+                  dependencies: {
+                    dep1: 'other.dep1',
+                  },
+                  strict: true,
+                  factory: async ({ dep1 }: { dep1: string }) => dep1,
+                },
+              },
+            },
+          },
+        });
+        const resolvedValue = await inc.getResolvedPathAsync('main.testDep');
+
+        expect(resolvedValue).to.equal(sharedSubMapDepValue);
+      },
+      'should supply asynchronous dependencies from a shared subMap': async () => {
+        const sharedSubMapDepValue = 'SHARED_SUBMAP_DEP_VALUE';
+        const inc = new Incarnate({
+          subMap: {
+            other: {
+              subMap: {
+                dep1: {
+                  // IMPORTANT: Must be async.
+                  factory: async () => sharedSubMapDepValue,
+                },
+              },
+            },
+            main: {
+              shared: {
+                other: 'other',
+              },
+              subMap: {
+                testDep: {
+                  dependencies: {
+                    dep1: 'other.dep1',
+                  },
+                  strict: true,
+                  factory: async ({ dep1 }: { dep1: string }) => dep1,
+                },
+              },
+            },
+          },
+        });
+        const resolvedValue = await inc.getResolvedPathAsync(
+          'main.testDep',
+          1000
+        );
+
+        expect(resolvedValue).to.equal(sharedSubMapDepValue);
       },
     },
     createIncarnate: {

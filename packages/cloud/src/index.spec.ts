@@ -1,30 +1,45 @@
 import expect from 'expect.js';
-import { DEP_NAMES, AWS, Google } from './index.jsx';
+import { DEP_NAMES, AWS, Google } from './index';
+// @ts-ignore
 import MockAPIGatewayEvent from '../Mock Data/AWS/Mock API Gateway Event';
+// @ts-ignore
 import MockGCFRequestContext from '../Mock Data/Google/Mock GCF Request Context';
+import { ObjectOf } from '../types/base';
+import { OriginProcessor } from './Providers/Utils';
+import { IGoogleCloudFunctionResponse } from './Providers/Google';
 
-class MockResponse {
-  response = {
+class MockResponse implements IGoogleCloudFunctionResponse {
+  response: {
+    statusCode: string | number;
+    headers: ObjectOf<string>;
+    body: string;
+  } = {
     statusCode: 200,
     headers: {},
     body: '',
   };
 
-  set = (key, value) => {
+  set = (key: string, value: string): IGoogleCloudFunctionResponse => {
     this.response.headers[key] = value;
+
+    return this;
   };
 
-  status = statusCode => {
+  status = (statusCode: string | number): IGoogleCloudFunctionResponse => {
     this.response.statusCode = statusCode;
 
     return this;
   };
 
-  send = body => (this.response.body = body);
+  send = (body: string): IGoogleCloudFunctionResponse => {
+    this.response.body = body;
+
+    return this;
+  };
 }
 
 const createTestWithAllowedOrigin = (
-  allowedOrigin = '',
+  allowedOrigin: OriginProcessor = '',
   eventData = MockAPIGatewayEvent,
   expectOrigin = 'http://example.com'
 ) => async () => {
@@ -36,7 +51,7 @@ const createTestWithAllowedOrigin = (
             service: {
               factory: () => {
                 return {
-                  methodName: a1 => a1,
+                  methodName: (a1: any): any => a1,
                 };
               },
             },
@@ -57,6 +72,8 @@ const createTestWithAllowedOrigin = (
   expect(allowedCorsOrigin).to.be(expectOrigin);
 };
 
+const genericServiceMethod = (a1: any): any => a1;
+
 module.exports = {
   AWS: {
     'should return a response': async () => {
@@ -68,7 +85,7 @@ module.exports = {
                 service: {
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -83,7 +100,7 @@ module.exports = {
 
       expect(responseBody).to.be.a('string');
 
-      const parsedResponseBody = JSON.parse(responseBody);
+      const parsedResponseBody = JSON.parse(responseBody as string);
 
       expect(parsedResponseBody).to.be.a('string');
       expect(parsedResponseBody).to.equal('Arguments in JSON');
@@ -114,7 +131,7 @@ module.exports = {
                   strict: true,
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -127,7 +144,7 @@ module.exports = {
       });
       const result = await cloudFunction(MockAPIGatewayEvent);
       const { statusCode, body: responseBody = 'undefined' } = result || {};
-      const { source: { message: sourceMessage } = {} } =
+      const { source: { message: sourceMessage = undefined } = {} } =
         JSON.parse(responseBody) || {};
 
       expect(statusCode).to.be(500);
@@ -156,7 +173,7 @@ module.exports = {
                   strict: true,
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -177,7 +194,7 @@ module.exports = {
       expect(message).to.be('RESOLUTION_TIMEOUT');
     },
     'should supply request specific built-in dependencies': async () => {
-      const getDepPath = p => `${DEP_NAMES.INPUT}/${p}`;
+      const getDepPath = (p: string) => `${DEP_NAMES.INPUT}/${p}`;
       const cloudFunction = AWS({
         incarnateConfig: {
           subMap: {
@@ -192,8 +209,8 @@ module.exports = {
                     context: getDepPath(DEP_NAMES.CONTEXT),
                     identity: getDepPath(DEP_NAMES.IDENTITY),
                   },
-                  factory: d => ({
-                    methodName: () => d,
+                  factory: (d: any) => ({
+                    methodName: (): any => d,
                   }),
                 },
               },
@@ -265,7 +282,7 @@ module.exports = {
                 service: {
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -315,7 +332,7 @@ module.exports = {
                   strict: true,
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -332,7 +349,7 @@ module.exports = {
 
       const { statusCode, body: responseBody = 'undefined' } =
         MockResponseInstance.response || {};
-      const { source: { message: sourceMessage } = {} } =
+      const { source: { message: sourceMessage = undefined } = {} } =
         JSON.parse(responseBody) || {};
 
       expect(statusCode).to.be(500);
@@ -361,7 +378,7 @@ module.exports = {
                   strict: true,
                   factory: () => {
                     return {
-                      methodName: a1 => a1,
+                      methodName: genericServiceMethod,
                     };
                   },
                 },
@@ -386,7 +403,7 @@ module.exports = {
       expect(message).to.be('RESOLUTION_TIMEOUT');
     },
     'should supply request specific built-in dependencies': async () => {
-      const getDepPath = p => `${DEP_NAMES.INPUT}/${p}`;
+      const getDepPath = (p: string) => `${DEP_NAMES.INPUT}/${p}`;
       const cloudFunction = Google({
         incarnateConfig: {
           subMap: {
@@ -401,8 +418,8 @@ module.exports = {
                     context: getDepPath(DEP_NAMES.CONTEXT),
                     identity: getDepPath(DEP_NAMES.IDENTITY),
                   },
-                  factory: d => ({
-                    methodName: () => d,
+                  factory: (d: any) => ({
+                    methodName: (): any => d,
                   }),
                 },
               },
