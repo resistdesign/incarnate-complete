@@ -36,7 +36,6 @@
   "module": "dist/cloud.esm.js",
   "devDependencies": {
     "@types/expect.js": "^0.3.29",
-    "aws-sdk": "^2.751.0",
     "expect.js": "^0.3.1",
     "husky": "^4.3.0",
     "mocha": "^8.1.3",
