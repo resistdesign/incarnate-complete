@@ -99,7 +99,7 @@ export const getRequestResponse = async ({
         [DEP_NAMES.INPUT]: {
           subMap: {
             [DEP_NAMES.HEADERS]: {
-              factory: () => incomingHeaders,
+              factory: () => incomingHeadersWithLowerCaseKeys,
             },
             [DEP_NAMES.COOKIES]: {
               dependencies: {
@@ -108,9 +108,13 @@ export const getRequestResponse = async ({
               factory: ({
                 suppliedHeaders = {},
               }: { suppliedHeaders?: ObjectOf<string | string[]> } = {}) => {
-                const { Cookie: cookieValue = '' } = suppliedHeaders;
+                const { cookie: cookieValue = '' } = suppliedHeaders;
+                const targetCookieString: string =
+                  cookieValue instanceof Array
+                    ? cookieValue[0] || ''
+                    : cookieValue;
 
-                return ParseCookies(cookieValue);
+                return ParseCookies(targetCookieString);
               },
             },
             [DEP_NAMES.PATH]: {
