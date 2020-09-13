@@ -1,6 +1,6 @@
 name: Core CI
 on:
-  workflow_dispatch: true
+  workflow_dispatch:
   push:
     paths:
       - 'packages/core/**'
