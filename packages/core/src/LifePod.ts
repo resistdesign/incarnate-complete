@@ -336,7 +336,7 @@ export default class LifePod extends HashMatrix
   async getPathAsync(path: HashMatrixPathPartType, timeoutMS?: number) {
     const pathString = this.getPathString(path);
 
-    return new Promise((res, rej) => {
+    return await new Promise((res, rej) => {
       let timeoutIdentifier: any = undefined;
 
       const handlers = {
@@ -357,9 +357,7 @@ export default class LifePod extends HashMatrix
           } catch (error) {
             const { message = '' } = error || {};
 
-            handlers.remove();
-
-            rej({
+            handlers.onError({
               message,
               subject: this,
               data: path,
@@ -395,6 +393,6 @@ export default class LifePod extends HashMatrix
    * The same as `getValue` but asynchronous and will wait for a value.
    * */
   async getValueAsync(timeoutMS?: number) {
-    return this.getPathAsync([], timeoutMS);
+    return await this.getPathAsync([], timeoutMS);
   }
 }
