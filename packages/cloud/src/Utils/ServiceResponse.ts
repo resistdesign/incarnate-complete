@@ -1,30 +1,19 @@
-export default class ServiceResponse {
-  /**
-   * @type {number}
-   * */
-  statusCode = 400;
+import { ObjectOf } from '../../types/base';
 
-  /**
-   * @type {*}
-   * */
-  data;
+export interface IServiceResponse {
+  statusCode: number;
+  data?: any;
+  headers?: ObjectOf<string>;
+  other?: ObjectOf<any>;
+}
 
-  /**
-   * @type {Object.<string>}
-   * */
-  headers;
-
-  /**
-   * @type {Object}
-   * */
-  other;
-
-  constructor(statusCode = 400, data, headers = {}, other = {}) {
-    this.statusCode = statusCode;
-    this.data = data;
-    this.headers = headers;
-    this.other = other;
-  }
+export default class ServiceResponse implements IServiceResponse {
+  constructor(
+    public statusCode = 400,
+    public data: any,
+    public headers: ObjectOf<string> = {},
+    public other: ObjectOf<any> = {}
+  ) {}
 
   toJSON = () => this.data;
 }

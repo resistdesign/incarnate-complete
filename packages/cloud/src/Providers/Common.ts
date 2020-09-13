@@ -4,18 +4,14 @@ import {
   getCORSHeaders,
   getMethodNameIsPrivate,
   getResponse,
+  OriginProcessor,
 } from './Utils';
 import { DEP_NAMES, METHODS, PATH_DELIMITER } from './Constants';
 import Incarnate, { SubMapDeclaration } from 'incarnate';
 import ParseCookies from 'cookie';
-import ServiceResponse from '../Utils/ServiceResponse';
+import ServiceResponse, { IServiceResponse } from '../Utils/ServiceResponse';
 import toCamelCase from 'lodash.camelcase';
-
-/**
- * @typedef {Function} AllowedOriginProcessor
- * @param {string} incomingOrigin The current origin of the incoming request.
- * @returns {boolean} Whether or not the `incomingOrigin` is allowed.
- * */
+import { ObjectOf } from '../../types/base';
 
 /**
  * The generic request handler.
@@ -44,6 +40,17 @@ export const getRequestResponse = async ({
   multiValueHeaders = {},
   path = '',
   bodyString = '[]',
+}: {
+  incarnateConfig?: SubMapDeclaration;
+  allowedPaths?: string[];
+  allowedOrigin?: OriginProcessor;
+  dependencyResolutionTimeoutMS?: number;
+  event?: ObjectOf<any>;
+  httpMethod?: string;
+  headers?: ObjectOf<string>;
+  multiValueHeaders?: ObjectOf<string[]>;
+  path?: string;
+  bodyString?: string;
 } = {}) => {
   const incomingHeaders = {
     ...headers,
@@ -59,15 +66,11 @@ export const getRequestResponse = async ({
   const {
     // IMPORTANT: Use lowercase header key.
     origin: incomingOrigin = '',
-  } = incomingHeadersWithLowerCaseKeys;
+  }: ObjectOf<string | string[]> = incomingHeadersWithLowerCaseKeys;
   const currentOrigin =
     incomingOrigin instanceof Array ? incomingOrigin[0] : incomingOrigin;
   const corsHeaders = getCORSHeaders(allowedOrigin, currentOrigin);
-  const getResponseWithCORS = (
-    statusCode = 200,
-    value = undefined,
-    headers = {}
-  ) => {
+  const getResponseWithCORS = (statusCode = 200, value?: any, headers = {}) => {
     return getResponse(statusCode, value, {
       ...corsHeaders,
       ...headers,
@@ -102,10 +105,12 @@ export const getRequestResponse = async ({
               dependencies: {
                 suppliedHeaders: DEP_NAMES.HEADERS,
               },
-              factory: ({ suppliedHeaders = {} } = {}) => {
-                const { Cookie: cookieString = '' } = suppliedHeaders;
+              factory: ({
+                suppliedHeaders = {},
+              }: { suppliedHeaders?: ObjectOf<string | string[]> } = {}) => {
+                const { Cookie: cookieValue = '' } = suppliedHeaders;
 
-                return ParseCookies(cookieString);
+                return ParseCookies(cookieValue);
               },
             },
             [DEP_NAMES.PATH]: {
@@ -145,7 +150,7 @@ export const getRequestResponse = async ({
   if (!!packageName && !!serviceName && !!methodName && !methodNameIsPrivate) {
     const servicePath = [DEP_NAMES.PACKAGES, packageName, serviceName];
 
-    let serviceInstance = {};
+    let serviceInstance: ObjectOf<any> = {};
 
     try {
       serviceInstance = await inc.getResolvedPathAsync(
@@ -158,9 +163,9 @@ export const getRequestResponse = async ({
         data,
         error: directError,
         source: {
-          error: { message: sourceMessage } = {},
-          path,
-          causePath,
+          error: { message: sourceMessage = undefined } = {},
+          path = undefined,
+          causePath = undefined,
         } = {},
       } = error || {};
       const responseData =
@@ -177,7 +182,7 @@ export const getRequestResponse = async ({
                 causePath,
               },
             };
-      const { statusCode = 500 } = responseData;
+      const { statusCode = 500 } = responseData as IServiceResponse;
 
       return getResponseWithCORS(statusCode, responseData);
     }

@@ -1,55 +1,66 @@
-/**
- * @typedef {Object} HandlerResponse
- * @property {number|string} statusCode The response HTTP status code.
- * @property {Object} headers The headers object.
- * @property {string} body A JSON string representing the return value of a function.
- * */
-
-// SECURITY: Don't call private methods on services.
 import { PATH_DELIMITER } from './Constants';
-import ServiceResponse from '../Utils/ServiceResponse';
+import ServiceResponse, { IServiceResponse } from '../Utils/ServiceResponse';
+import { ObjectOf } from '../../types/base';
+
+export interface HandlerResponse {
+  statusCode?: string | number;
+  headers?: ObjectOf<string>;
+  body?: string;
+}
+export type AllowedOriginProcessor = (incomingOrigin: string) => boolean;
+export type OriginProcessor =
+  | string
+  | string[]
+  | RegExp
+  | RegExp[]
+  | AllowedOriginProcessor
+  | AllowedOriginProcessor[];
 
 const CLEAN_CONTENT_TYPE_HEADER_NAME = 'content-type';
 const JSON_CONTENT_TYPE = 'application/json';
 
+// SECURITY: Don't call private methods on services.
 export const getMethodNameIsPrivate = (methodName = '') =>
   methodName.charAt(0) === '_';
 
 export const getCleanPathParts = (path = '') =>
   path.split(PATH_DELIMITER).filter(p => !!p);
 
-/**
- * @returns {HandlerResponse} The handler response object.
- * */
 export const getResponse = (
   statusCode = 200,
-  value = undefined,
+  value?: any,
   headers = {}
-) => {
+): HandlerResponse => {
   const baseHeaders =
     typeof value === 'undefined'
       ? { ...headers }
       : { 'Content-Type': 'application/json', ...headers };
-  const { headers: valueHeaders = {}, other: valueOtherProperties = {} } =
-    value instanceof ServiceResponse ? value : {};
-  const mergedHeaders = {
+  const {
+    headers: valueHeaders = {},
+    other: valueOtherProperties = {},
+  }: IServiceResponse =
+    value instanceof ServiceResponse ? value : { statusCode: 400 };
+  const mergedHeaders: ObjectOf<string> = {
     ...baseHeaders,
     ...valueHeaders,
   };
-  const contentType = Object.keys(mergedHeaders).reduce((acc, k) => {
-    if (typeof acc !== 'undefined') {
-      return acc;
-    } else {
-      const cleanKey = `${k}`.toLowerCase();
-
-      if (cleanKey === CLEAN_CONTENT_TYPE_HEADER_NAME) {
-        return mergedHeaders[k];
+  const contentType = Object.keys(mergedHeaders).reduce(
+    (acc: string | undefined, k: string) => {
+      if (typeof acc !== 'undefined') {
+        return acc;
       } else {
-        return undefined;
+        const cleanKey = `${k}`.toLowerCase();
+
+        if (cleanKey === CLEAN_CONTENT_TYPE_HEADER_NAME) {
+          return mergedHeaders[k];
+        } else {
+          return undefined;
+        }
       }
-    }
-  }, undefined);
-  const contentIsJSON =
+    },
+    undefined
+  );
+  const contentIsJSON: boolean =
     typeof contentType === 'string' &&
     contentType.indexOf(JSON_CONTENT_TYPE) !== -1;
 
@@ -59,7 +70,7 @@ export const getResponse = (
     body:
       typeof value === 'undefined'
         ? ''
-        : !!contentIsJSON
+        : contentIsJSON
         ? // Content is JSON.
           JSON.stringify(value, null, '  ')
         : // Content is NOT JSON.
@@ -68,20 +79,26 @@ export const getResponse = (
   };
 };
 
-export const getCORSHeaders = (clientOrigin = '', currentOrigin = '') => {
+export const getCORSHeaders = (
+  clientOrigin: OriginProcessor = '',
+  currentOrigin = ''
+) => {
   const originProcessors =
     clientOrigin instanceof Array ? clientOrigin : [clientOrigin];
-  const validOrigin = originProcessors.reduce((acc, o) => {
-    if (!!acc) {
-      return acc;
-    } else if (o instanceof RegExp) {
-      return !!currentOrigin.match(o) ? currentOrigin : '';
-    } else if (o instanceof Function) {
-      return !!o(currentOrigin) ? currentOrigin : '';
-    } else {
-      return o === currentOrigin ? o : '';
-    }
-  }, '');
+  const validOrigin: string = originProcessors.reduce(
+    (acc: string, o: OriginProcessor) => {
+      if (!!acc) {
+        return acc;
+      } else if (o instanceof RegExp) {
+        return !!currentOrigin.match(o) ? currentOrigin : '';
+      } else if (o instanceof Function) {
+        return !!o(currentOrigin) ? currentOrigin : '';
+      } else {
+        return o === currentOrigin ? o : '';
+      }
+    },
+    ''
+  );
 
   return {
     'Access-Control-Allow-Origin': validOrigin,

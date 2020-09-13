@@ -1,5 +1,15 @@
 import { parse as ParseURL } from 'url';
 import { getRequestResponse } from './Common';
+import { ObjectOf } from '../../types/base';
+
+export interface IGoogleCloudFunctionResponse {
+  set: (
+    headerName: string,
+    headerValue: string
+  ) => IGoogleCloudFunctionResponse;
+  status: (statusCode: string | number) => IGoogleCloudFunctionResponse;
+  send: (body: string) => IGoogleCloudFunctionResponse;
+}
 
 /**
  * Create an Incarnate managed Google Cloud Function handler.
@@ -17,7 +27,15 @@ export default ({
   allowedOrigin = '',
   dependencyResolutionTimeoutMS = 300000,
 } = {}) => {
-  return async (req = {}, res) => {
+  return async (
+    req: {
+      method?: string;
+      headers?: ObjectOf<string>;
+      url?: string;
+      rawBody?: string;
+    } = {},
+    res: IGoogleCloudFunctionResponse
+  ) => {
     const {
       method: httpMethod = 'POST',
       headers = {},
@@ -38,7 +56,7 @@ export default ({
       httpMethod,
       headers,
       multiValueHeaders: {},
-      path,
+      path: !!path ? path : undefined,
       bodyString,
     });
 
