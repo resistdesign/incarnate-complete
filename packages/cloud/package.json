@@ -32,6 +32,9 @@
     "trailingComma": "es5",
     "useTabs": false
   },
+  "mocha": {
+    "timeout": 5000
+  },
   "author": "Ryan Graff",
   "module": "dist/cloud.esm.js",
   "devDependencies": {
