@@ -1,4 +1,5 @@
 import { getRequestResponse } from './Common';
+import { ObjectOf } from '../../types/base';
 
 /**
  * Create an Incarnate managed Lambda handler.
@@ -16,7 +17,15 @@ export default ({
   allowedOrigin = '',
   dependencyResolutionTimeoutMS = 300000,
 } = {}) => {
-  return async (event = {}) => {
+  return async (
+    event: {
+      httpMethod?: string;
+      headers?: ObjectOf<string>;
+      multiValueHeaders?: ObjectOf<string[]>;
+      path?: string;
+      body?: string;
+    } = {}
+  ) => {
     const {
       httpMethod = 'POST',
       headers = {},
