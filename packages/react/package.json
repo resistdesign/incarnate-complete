@@ -1,5 +1,6 @@
 {
   "name": "@incarnate/react",
+  "description": "Incarnate for React",
   "version": "4.0.0",
   "license": "MIT",
   "main": "dist/index.js",
