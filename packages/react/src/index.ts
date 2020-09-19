@@ -7,3 +7,4 @@ export {IncarnateRedirect, IncarnateRedirectProps} from './Routing/IncarnateRedi
 export {IncarnateRouteSet, IncarnateRouteSetProps} from './Routing/IncarnateRouteSet';
 
 export {ExplicitlyCachedValue, ExplicitlyCachedValueProps} from './Control/ExplicitlyCachedValue';
+export {Memoize, MemoizeProps} from './Control/Memoize';
