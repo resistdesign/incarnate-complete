@@ -8,3 +8,4 @@ export {IncarnateRouteSet, IncarnateRouteSetProps} from './Routing/IncarnateRout
 
 export {ExplicitlyCachedValue, ExplicitlyCachedValueProps} from './Control/ExplicitlyCachedValue';
 export {Memoize, MemoizeProps} from './Control/Memoize';
+export {Traverse, TraverseProps, TraverseNavigationController, TraverseController} from './Control/Traverse';
