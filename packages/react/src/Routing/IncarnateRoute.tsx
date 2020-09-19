@@ -3,6 +3,7 @@ import {useRouteMatch, useLocation, useHistory} from 'react-router-dom';
 import QS from 'qs';
 import {Incarnate, LifePod} from '../.';
 
+const URL_DELIMITER = '/';
 const QS_OPTIONS = {
     ignoreQueryPrefix: true,
     depth: Infinity,
@@ -29,6 +30,20 @@ export const createQueryString = (query = {}) => {
         QS_OPTIONS
     );
 };
+export const getUrl = (parentUrl = '', url = '') => {
+    const parentEndsWithDelimiter = parentUrl.split('').reverse()[0] === URL_DELIMITER;
+    const urlStartsWithDelimiter = url.split('')[0] === URL_DELIMITER;
+
+    if (parentEndsWithDelimiter && urlStartsWithDelimiter) {
+        const newParent = parentUrl.slice(0, -1);
+
+        return `${newParent}${url}`;
+    } else if (parentEndsWithDelimiter || urlStartsWithDelimiter) {
+        return `${parentUrl}${url}`;
+    } else {
+        return `${parentUrl}${URL_DELIMITER}${url}`;
+    }
+};
 export const ROUTE_PATH_DELIMITER = '/';
 export const PATH_NAMES = {
     ROUTE_PROPS_LIST: 'ROUTE_PROPS_LIST',
@@ -40,9 +55,6 @@ export const IncarnateRoutePropListContext = createContext<any[]>([]);
 const {Provider: RoutePathProvider} = IncarnateRoutePathContext;
 const {Provider: RoutePropListProvider} = IncarnateRoutePropListContext;
 
-const getPathParts = (path: string = ''): string[] => path.split('/').filter(p => !!p);
-const getPathFromParts = (parts: string[] = []): string => parts.join(ROUTE_PATH_DELIMITER);
-
 export const IncarnateRoute: FC<IncarnateRouteProps> = (props) => {
     const {
         children,
@@ -50,13 +62,8 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = (props) => {
         ...routeProps
     } = props;
     const currentRoutePath = useContext(IncarnateRoutePathContext);
+    const newRoutePath = getUrl(currentRoutePath, subPath);
     const routePropsList = useContext(IncarnateRoutePropListContext);
-    const currentRoutePathParts = getPathParts(currentRoutePath);
-    const subPathParts = getPathParts(subPath);
-    const newRoutePath = getPathFromParts([
-        ...currentRoutePathParts,
-        ...subPathParts
-    ]);
     const match = useRouteMatch({
         path: newRoutePath,
         ...routeProps

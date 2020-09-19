@@ -1,5 +1,5 @@
 import React, {FC} from 'react';
-import {Incarnate, IncarnateProps} from '../Incarnate';
+import {Incarnate, IncarnateProps} from '../.';
 import {IncarnateRoute} from './IncarnateRoute';
 
 const DEFAULT_ROUTE_PATH = '/';
