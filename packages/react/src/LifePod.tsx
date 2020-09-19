@@ -136,16 +136,22 @@ export const LifePod: FC<LifePodProps> = (props) => {
     useEffect(() => {
         if (!!lifePod) {
             lifePod.addChangeHandler('', onLifePodChange);
-            lifePod.addErrorHandler('', onResolveError);
+
+            if (!!onResolveError) {
+                lifePod.addErrorHandler('', onResolveError);
+            }
         }
 
         return () => {
             if (!!lifePod) {
                 lifePod.removeChangeHandler('', onLifePodChange);
-                lifePod.removeErrorHandler('', onResolveError);
+
+                if (!!onResolveError) {
+                    lifePod.removeErrorHandler('', onResolveError);
+                }
             }
         };
-    }, [lifePod, onLifePodChange]);
+    }, [lifePod, onLifePodChange, onResolveError]);
 
     if (typeof childProps !== 'undefined' || alwaysRender) {
         // If children is a function, pass childProps.

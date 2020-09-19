@@ -39,6 +39,7 @@
   "module": "dist/react.esm.js",
   "dependencies": {
     "@incarnate/core": "^7.0.0",
+    "qs": "^6.9.4",
     "react-router-dom": "^5.2.0"
   },
   "devDependencies": {
@@ -49,6 +50,7 @@
     "@storybook/addon-links": "^6.0.21",
     "@storybook/addons": "^6.0.21",
     "@storybook/react": "^6.0.21",
+    "@types/qs": "^6.9.5",
     "@types/react": "^16.9.49",
     "@types/react-dom": "^16.9.8",
     "@types/react-router-dom": "^5.1.5",
