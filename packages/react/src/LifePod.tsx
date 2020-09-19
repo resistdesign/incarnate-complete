@@ -9,7 +9,7 @@ export type LifePodProps = {
     mapToProps?: DependencyDeclaration['factory'];
     override?: boolean;
     alwaysRender?: boolean;
-    onResolveError: LifePodResolveErrorHandler;
+    onResolveError?: LifePodResolveErrorHandler;
 } & DependencyDeclaration;
 
 const DEFAULT_FACTORY = (...args: any[]) => args;
