@@ -126,6 +126,44 @@ const suite = {
         </Incarnate>);
 
         expect(depValue).to.equal(nestedTextValue);
+    },
+    'should resolve asynchronous dependencies from a nested Incarnate': async () => {
+        const nestedTextValue = 'NESTED_TEXT_VALUE';
+
+        let depValue: string | undefined;
+
+        await new Promise((res, rej) => {
+            render(<Incarnate>
+                <Incarnate
+                    name='Nested'
+                >
+                    <LifePod
+                        name='Value'
+                        factory={async () => nestedTextValue}
+                    />
+                </Incarnate>
+                <LifePod
+                    dependencies={{
+                        nv: 'Nested.Value'
+                    }}
+                    factory={({nv}) => {
+                        depValue = nv;
+
+                        if (typeof depValue !== 'undefined') {
+                            res();
+                        }
+                    }}
+                />
+            </Incarnate>);
+
+            try {
+                expect(depValue).to.be(undefined);
+            } catch (error) {
+                rej(error);
+            }
+        });
+
+        expect(depValue).to.equal(nestedTextValue);
     }
 };
 
