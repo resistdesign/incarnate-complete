@@ -17,7 +17,7 @@ const suite = {
 
         expect(found).to.be.ok();
     },
-    'should add itself to a parent Incarnate': () => {
+    'should attach itself to a parent Incarnate': () => {
         const testValue = 'TEST_VALUE';
 
         let depValue;
@@ -35,7 +35,97 @@ const suite = {
             />
         </Incarnate>);
 
-        expect(depValue).to.eql(testValue);
+        expect(depValue).to.equal(testValue);
+    },
+    'should resolve values asynchronously': async () => {
+        const testValue = 'TEST_VALUE';
+
+        let depValue: string | undefined;
+
+        await new Promise((res, rej) => {
+            render(<Incarnate>
+                <LifePod
+                    name='TestValue'
+                    factory={() => testValue}
+                />
+                <LifePod
+                    dependencies={{
+                        tv: 'TestValue'
+                    }}
+                    factory={async ({tv}) => {
+                        depValue = tv;
+
+                        res();
+                    }}
+                />
+            </Incarnate>);
+
+            try {
+                expect(depValue).to.be(undefined);
+            } catch (error) {
+                rej(error);
+            }
+        });
+
+        expect(depValue).to.equal(testValue);
+    },
+    'should resolve dependencies asynchronously': async () => {
+        const testValue = 'TEST_VALUE';
+
+        let depValue: string | undefined;
+
+        await new Promise((res, rej) => {
+            render(<Incarnate>
+                <LifePod
+                    name='TestValue'
+                    factory={async () => testValue}
+                />
+                <LifePod
+                    dependencies={{
+                        tv: 'TestValue'
+                    }}
+                    factory={({tv}) => {
+                        depValue = tv;
+
+                        if (typeof depValue !== 'undefined') {
+                            res();
+                        }
+                    }}
+                />
+            </Incarnate>);
+
+            try {
+                expect(depValue).to.be(undefined);
+            } catch (error) {
+                rej(error);
+            }
+        });
+
+        expect(depValue).to.equal(testValue);
+    },
+    'should resolve dependencies from a nested Incarnate': () => {
+        const nestedTextValue = 'NESTED_TEXT_VALUE';
+
+        let depValue;
+
+        render(<Incarnate>
+            <Incarnate
+                name='Nested'
+            >
+                <LifePod
+                    name='Value'
+                    factory={() => nestedTextValue}
+                />
+            </Incarnate>
+            <LifePod
+                dependencies={{
+                    nv: 'Nested.Value'
+                }}
+                factory={({nv}) => depValue = nv}
+            />
+        </Incarnate>);
+
+        expect(depValue).to.equal(nestedTextValue);
     }
 };
 

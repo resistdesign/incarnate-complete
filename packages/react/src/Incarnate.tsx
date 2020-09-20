@@ -19,6 +19,10 @@ const getIncarnate = (parentIncarnate: INC | undefined, props: IncarnateProps, i
         onIncarnateInstanceRef,
         ...subMapDeclaration
     } = props;
+    const baseSubMapDeclaration = {
+        subMap: {},
+        ...subMapDeclaration
+    };
 
     if (parentIncarnate instanceof INC) {
         // Get the Incarnate instance from a parent Incarnate.
@@ -28,7 +32,7 @@ const getIncarnate = (parentIncarnate: INC | undefined, props: IncarnateProps, i
             incarnateHashMatrixKey
         ].join(getDefaultMapKeyDelimiter(parentIncarnate.pathDelimiter));
         const targetSubMapDeclaration = {
-            ...subMapDeclaration,
+            ...baseSubMapDeclaration,
             name: targetName
         };
         const {subMap, subMap: {[targetName]: existingMapEntry} = {}} = parentIncarnate;
@@ -45,7 +49,7 @@ const getIncarnate = (parentIncarnate: INC | undefined, props: IncarnateProps, i
         incarnate = parentIncarnate.getDependency(targetName) as INC;
     } else {
         // Create a standalone Incarnate instance.
-        incarnate = new INC(subMapDeclaration);
+        incarnate = new INC(baseSubMapDeclaration);
     }
 
     if (onIncarnateInstanceRef instanceof Function) {

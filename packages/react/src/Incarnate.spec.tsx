@@ -22,7 +22,7 @@ const suite = {
         expect(incRef).to.be.ok();
         expect(incRef).to.have.property('subMap');
         expect(incRef).to.have.property('name');
-        expect((incRef as any).name).to.eql(incName);
+        expect((incRef as any).name).to.equal(incName);
     },
     'should render its children': async () => {
         const textContent = 'TEXT_CONTENT';
@@ -30,6 +30,22 @@ const suite = {
         const found = await findByText(inc.container, textContent);
 
         expect(found).to.be.ok();
+    },
+    'should attach itself to a parent Incarnate': () => {
+        const nestedName = 'Nested';
+
+        let incRef: any;
+
+        render(<Incarnate
+            onIncarnateInstanceRef={inc => incRef = inc}
+        >
+            <Incarnate
+                name={nestedName}
+            />
+        </Incarnate>);
+
+        expect(incRef.subMap[nestedName]).to.be.ok();
+        expect(incRef.subMap[nestedName].name).to.equal(nestedName);
     }
 };
 
