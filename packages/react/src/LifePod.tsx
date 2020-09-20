@@ -170,9 +170,9 @@ export const LifePod: FC<LifePodProps> = (props) => {
                 ...baseChildProps
             });
         } else {
-            return children;
+            return typeof children === 'undefined' ? null : children;
         }
     } else {
-        return undefined;
+        return null;
     }
 };
