@@ -1,72 +1,56 @@
-import React, {FC, PropsWithChildren, useEffect, useMemo} from 'react';
-import {LifePod} from '../.';
+import React, { FC, PropsWithChildren, useEffect } from 'react';
+import { LifePod } from '../.';
 
 export type ExplicitlyCachedValueProps = {
-    name?: string;
-    dependencyPath: string;
+  name?: string;
+  dependencyPath: string;
 } & PropsWithChildren<any>;
 
 /**
  * Use this controller to safeguard against unnecessary updates due to the
  * nature of the invalidation chain.
  * */
-export const ExplicitlyCachedValue: FC<ExplicitlyCachedValueProps> = (props) => {
-    const {
-        name,
-        dependencyPath = ''
-    } = props;
-    const storage = useMemo<{
-        value?: any,
-        unlisten?: Function
-    }>(() => ({
-        value: undefined,
-        unlisten: undefined
-    }), [name, dependencyPath]);
+export const ExplicitlyCachedValue: FC<ExplicitlyCachedValueProps> = props => {
+  const { name, dependencyPath = '' } = props;
 
-    useEffect(() => () => {
-        const {
-            unlisten
-        } = storage;
+  let value: any, unlisten: Function;
 
-        if (unlisten instanceof Function) {
-            unlisten();
+  useEffect(() => () => {
+    if (!!unlisten) {
+      unlisten();
+    }
+  });
+
+  return (
+    <LifePod
+      name={name}
+      getters={{
+        getValue: dependencyPath,
+      }}
+      setters={{
+        setCachedValue: name,
+      }}
+      listeners={{
+        onValueChange: dependencyPath,
+      }}
+      override
+      factory={({ getValue, onValueChange, setCachedValue } = {}) => {
+        if (!(unlisten instanceof Function)) {
+          unlisten = onValueChange(() => {
+            const depValue = getValue();
+
+            if (typeof depValue !== 'undefined') {
+              value = depValue;
+
+              setCachedValue(value);
+            }
+          });
+
+          value = getValue();
         }
-    }, [storage]);
 
-    return (
-        <LifePod
-            name={name}
-            getters={{
-                getValue: dependencyPath
-            }}
-            setters={{
-                setCachedValue: name
-            }}
-            listeners={{
-                onValueChange: dependencyPath
-            }}
-            override
-            factory={({
-                          getValue,
-                          onValueChange,
-                          setCachedValue
-                      } = {}) => {
-                if (!(storage.unlisten instanceof Function)) {
-                    storage.unlisten = onValueChange(() => {
-                        const depValue = getValue();
-
-                        if (typeof depValue !== 'undefined') {
-                            storage.value = depValue;
-
-                            setCachedValue(storage.value);
-                        }
-                    });
-
-                    storage.value = getValue();
-                }
-
-                return storage.value;
-            }}
-        />
-    );
+        return value;
+      }}
+    />
+  );
 };

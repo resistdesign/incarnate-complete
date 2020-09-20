@@ -1,136 +1,129 @@
-import React, {FC, PropsWithChildren, useMemo} from 'react';
-import {LifePod} from '../.';
+import React, { FC, PropsWithChildren } from 'react';
+import { LifePod } from '../.';
 
 export type TraverseProps = {
-    name?: string;
-    dependencyPath: string;
+  name?: string;
+  dependencyPath: string;
 } & PropsWithChildren<any>;
 export type TraverseNavigationController = {
-    back: () => void;
-    forward: () => void;
-    clear: () => void;
-    canUndo: () => boolean;
-    canRedo: () => boolean;
+  back: () => void;
+  forward: () => void;
+  clear: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 };
 
 export class TraverseController {
+  controller?: TraverseNavigationController;
 
-    controller?: TraverseNavigationController;
-
-    getController(): TraverseNavigationController {
-        if (!this.controller) {
-            this.controller = {
-                back: this.back,
-                forward: this.forward,
-                clear: this.clear,
-                canUndo: this.canUndo,
-                canRedo: this.canRedo
-            };
-        }
-
-        return this.controller;
+  getController(): TraverseNavigationController {
+    if (!this.controller) {
+      this.controller = {
+        back: this.back,
+        forward: this.forward,
+        clear: this.clear,
+        canUndo: this.canUndo,
+        canRedo: this.canRedo,
+      };
     }
 
-    setDepValue?: Function;
+    return this.controller;
+  }
 
-    past: any[] = [];
-    present?: any;
-    future: any[] = [];
+  setDepValue?: Function;
 
-    moveCursor = (offset = 0) => {
-        const parsedOffset = parseInt(`${offset}`, 10);
-        const cleanOffset = `${parsedOffset}` !== 'NaN' ? parsedOffset : 0;
+  past: any[] = [];
+  present?: any;
+  future: any[] = [];
 
-        if (cleanOffset !== 0) {
-            const currentIndex = this.past.length;
-            const fullHistory = [
-                ...this.past,
-                this.present,
-                ...this.future
-            ];
+  moveCursor = (offset = 0) => {
+    const parsedOffset = parseInt(`${offset}`, 10);
+    const cleanOffset = `${parsedOffset}` !== 'NaN' ? parsedOffset : 0;
 
-            let newIndex = currentIndex + cleanOffset;
+    if (cleanOffset !== 0) {
+      const currentIndex = this.past.length;
+      const fullHistory = [...this.past, this.present, ...this.future];
 
-            if (newIndex > fullHistory.length - 1) {
-                newIndex = fullHistory.length - 1;
-            }
+      let newIndex = currentIndex + cleanOffset;
 
-            if (newIndex < 0) {
-                newIndex = 0;
-            }
+      if (newIndex > fullHistory.length - 1) {
+        newIndex = fullHistory.length - 1;
+      }
 
-            this.past = fullHistory.slice(0, newIndex);
-            this.present = fullHistory[newIndex];
-            this.future = fullHistory.slice(newIndex + 1, fullHistory.length);
+      if (newIndex < 0) {
+        newIndex = 0;
+      }
 
-            if (this.setDepValue instanceof Function) {
-                // Update the target dependency.
-                this.setDepValue(this.present);
-            }
-        }
-    };
+      this.past = fullHistory.slice(0, newIndex);
+      this.present = fullHistory[newIndex];
+      this.future = fullHistory.slice(newIndex + 1, fullHistory.length);
 
-    back = (offset: number | string = 1) => {
-        this.moveCursor(parseInt(`${offset}`, 10) * -1);
-    };
+      if (this.setDepValue instanceof Function) {
+        // Update the target dependency.
+        this.setDepValue(this.present);
+      }
+    }
+  };
 
-    firstUpdate = true;
+  back = (offset: number | string = 1) => {
+    this.moveCursor(parseInt(`${offset}`, 10) * -1);
+  };
 
-    updatePresent = (depValue: any) => {
-        if (depValue !== this.present) {
-            if (this.firstUpdate) {
-                this.firstUpdate = false;
-            } else {
-                this.past = [
-                    ...this.past,
-                    this.present
-                ];
-            }
-            this.present = depValue;
-            this.future = [];
-        }
-    };
+  firstUpdate = true;
 
-    forward = (offset: number | string = 1) => {
-        this.moveCursor(parseInt(`${offset}`, 10));
-    };
+  updatePresent = (depValue: any) => {
+    if (depValue !== this.present) {
+      if (this.firstUpdate) {
+        this.firstUpdate = false;
+      } else {
+        this.past = [...this.past, this.present];
+      }
+      this.present = depValue;
+      this.future = [];
+    }
+  };
 
-    clear = () => {
-        this.past = [];
-        this.future = [];
-    };
+  forward = (offset: number | string = 1) => {
+    this.moveCursor(parseInt(`${offset}`, 10));
+  };
 
-    canUndo = () => {
-        return this.past.length > 0;
-    };
+  clear = () => {
+    this.past = [];
+    this.future = [];
+  };
 
-    canRedo = () => {
-        return this.future.length > 0;
-    };
+  canUndo = () => {
+    return this.past.length > 0;
+  };
+
+  canRedo = () => {
+    return this.future.length > 0;
+  };
 }
 
-export const Traverse: FC<TraverseProps> = (props) => {
-    const {
-        name,
-        dependencyPath
-    } = props;
-    const traverseController = useMemo(() => new TraverseController(), [name, dependencyPath]);
+export const Traverse: FC<TraverseProps> = props => {
+  const { name, dependencyPath } = props;
+  const traverseController = new TraverseController();
 
-    return (
-        <LifePod
-            name={name}
-            dependencies={{
-                depValue: dependencyPath
-            }}
-            setters={{
-                setDepValue: dependencyPath
-            }}
-            factory={({depValue, setDepValue} = {}): TraverseNavigationController => {
-                traverseController.setDepValue = setDepValue;
-                traverseController.updatePresent(depValue);
+  return (
+    <LifePod
+      name={name}
+      dependencies={{
+        depValue: dependencyPath,
+      }}
+      setters={{
+        setDepValue: dependencyPath,
+      }}
+      override
+      factory={({
+        depValue,
+        setDepValue,
+      } = {}): TraverseNavigationController => {
+        traverseController.setDepValue = setDepValue;
+        traverseController.updatePresent(depValue);
 
-                return traverseController.getController();
-            }}
-        />
-    );
+        return traverseController.getController();
+      }}
+    />
+  );
 };
