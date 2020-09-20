@@ -1,6 +1,6 @@
 import expect from 'expect.js';
 import React from 'react';
-import {render} from '@testing-library/react';
+import {render, findByText} from '@testing-library/react';
 import {Incarnate} from './Incarnate';
 
 const suite = {
@@ -23,6 +23,13 @@ const suite = {
         expect(incRef).to.have.property('subMap');
         expect(incRef).to.have.property('name');
         expect((incRef as any).name).to.eql(incName);
+    },
+    'should render its children': async () => {
+        const textContent = 'TEXT_CONTENT';
+        const inc = render(<Incarnate>{textContent}</Incarnate>);
+        const found = await findByText(inc.container, textContent);
+
+        expect(found).to.be.ok();
     }
 };
 
