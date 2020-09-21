@@ -1,5 +1,6 @@
 import React, { createContext, FC, ReactNode, useContext } from 'react';
 import { useRouteMatch, useLocation, useHistory } from 'react-router-dom';
+import { History, Location } from 'history';
 import QS from 'qs';
 import { Incarnate, LifePod } from '../.';
 
@@ -11,8 +12,16 @@ const QS_OPTIONS = {
   allowDots: true,
 };
 
+export type IncarnateRouteValues = {
+  history: History<any>;
+  location: Location<any>;
+  params: { [key: string]: any };
+  query: { [key: string]: any };
+  setQuery: (query: { [key: string]: any }) => void;
+  [key: string]: any;
+};
 export type IncarnateRouteProps = {
-  children?: ReactNode | Function;
+  children?: ReactNode | ((routeValues: IncarnateRouteValues) => any);
   subPath?: string;
   strict?: boolean;
   exact?: boolean;
@@ -72,15 +81,15 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
       : null
     : null;
   const routePropsList = useContext(IncarnateRoutePropListContext);
-  const location = useLocation();
-  const history = useHistory();
+  const location = useLocation<any>() as any;
+  const history = useHistory<any>() as any;
 
   const matchObject: { [key: string]: any } = !!match ? match : {};
-  const newRouteProps: { [key: string]: any } = {
+  const newRouteProps: IncarnateRouteValues = {
     ...matchObject,
     history,
     location,
-    params: matchObject.params,
+    params: { ...matchObject.params },
     query: getQueryObjectFromLocation(location),
     setQuery: (query = {}) => {
       const { pathname } = location;

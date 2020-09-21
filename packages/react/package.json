@@ -16,7 +16,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' mocha --inline-diffs --require ./mocha-ts-node-compat.js --ui exports './src/**/*.spec.tsx'",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' mocha --inline-diffs --require ./mocha-ts-node-compat.js --timeout 30000 --ui exports './src/**/*.spec.tsx'",
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "storybook": "start-storybook -p 6006",
@@ -40,6 +40,7 @@
   "module": "dist/react.esm.js",
   "dependencies": {
     "@incarnate/core": "^7.0.0",
+    "history": "^5.0.0",
     "qs": "^6.9.4",
     "react-router-dom": "^5.2.0"
   },
@@ -53,6 +54,7 @@
     "@storybook/react": "^6.0.21",
     "@testing-library/react": "^11.0.4",
     "@types/expect.js": "^0.3.29",
+    "@types/history": "^4.7.8",
     "@types/qs": "^6.9.5",
     "@types/react": "^16.9.49",
     "@types/react-dom": "^16.9.8",
