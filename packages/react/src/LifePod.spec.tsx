@@ -1,10 +1,11 @@
 import expect from 'expect.js';
 import React from 'react';
-import { render, findByText } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { LifePod } from './LifePod';
 import { Incarnate } from './Incarnate';
 
 const suite = {
+  beforeEach: () => cleanup(),
   'should render': () => {
     const lp = render(<LifePod />);
 
@@ -13,7 +14,7 @@ const suite = {
   'should render its children': async () => {
     const textContent = 'TEXT_CONTENT';
     const lp = render(<LifePod factory={() => true}>{textContent}</LifePod>);
-    const found = await findByText(lp.container, textContent);
+    const found = await lp.findByText(textContent);
 
     expect(found).to.be.ok();
   },

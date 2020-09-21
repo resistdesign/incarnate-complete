@@ -1,4 +1,4 @@
-import React, { createContext, FC, useContext } from 'react';
+import React, { createContext, FC, ReactNode, useContext } from 'react';
 import { useRouteMatch, useLocation, useHistory } from 'react-router-dom';
 import QS from 'qs';
 import { Incarnate, LifePod } from '../.';
@@ -12,6 +12,7 @@ const QS_OPTIONS = {
 };
 
 export type IncarnateRouteProps = {
+  children?: ReactNode | Function;
   subPath?: string;
   strict?: boolean;
   exact?: boolean;
@@ -65,59 +66,59 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
     ...routeProps,
   });
   const match = isDefault && parentMatch ? parentMatch || newMatch : newMatch;
-  const renderChildren = match && children;
+  const renderChildren = !!match
+    ? typeof children !== 'undefined'
+      ? children
+      : null
+    : null;
   const routePropsList = useContext(IncarnateRoutePropListContext);
   const location = useLocation();
   const history = useHistory();
 
-  if (renderChildren) {
-    const matchObject: { [key: string]: any } = match ? match : {};
-    const newRouteProps: { [key: string]: any } = {
-      ...matchObject,
-      history,
-      location,
-      params: matchObject.params,
-      query: getQueryObjectFromLocation(location),
-      setQuery: (query = {}) => {
-        const { pathname } = location;
+  const matchObject: { [key: string]: any } = !!match ? match : {};
+  const newRouteProps: { [key: string]: any } = {
+    ...matchObject,
+    history,
+    location,
+    params: matchObject.params,
+    query: getQueryObjectFromLocation(location),
+    setQuery: (query = {}) => {
+      const { pathname } = location;
 
-        if (!!history) {
-          history.push({
-            pathname,
-            search: createQueryString(query),
-          });
-        }
-      },
-    };
-    const newRoutePropsList = [newRouteProps, ...routePropsList];
+      if (!!history) {
+        history.push({
+          pathname,
+          search: createQueryString(query),
+        });
+      }
+    },
+  };
+  const newRoutePropsList = [newRouteProps, ...routePropsList];
 
-    return (
-      <RoutePathProvider value={newRoutePath}>
-        <RoutePropListProvider value={newRoutePropsList}>
-          <LifePod
-            name={PATH_NAMES.ROUTE_PROPS_LIST}
-            noCache
-            override
-            factory={() => newRoutePropsList}
-          />
-          <Incarnate name={PATH_NAMES.ROUTE_PROPS}>
-            {Object.keys(newRouteProps).map((k: string) => (
-              <LifePod
-                key={`${PATH_NAMES.ROUTE_PROPS}:${k}`}
-                name={k}
-                noCache
-                override
-                factory={() => newRouteProps[k]}
-              />
-            ))}
-          </Incarnate>
-          {renderChildren instanceof Function
-            ? renderChildren(newRouteProps)
-            : renderChildren}
-        </RoutePropListProvider>
-      </RoutePathProvider>
-    );
-  } else {
-    return null;
-  }
+  return (
+    <RoutePathProvider value={newRoutePath}>
+      <RoutePropListProvider value={newRoutePropsList}>
+        <LifePod
+          name={PATH_NAMES.ROUTE_PROPS_LIST}
+          noCache
+          override
+          factory={() => newRoutePropsList}
+        />
+        <Incarnate name={PATH_NAMES.ROUTE_PROPS}>
+          {Object.keys(newRouteProps).map((k: string) => (
+            <LifePod
+              key={`${PATH_NAMES.ROUTE_PROPS}:${k}`}
+              name={k}
+              noCache
+              override
+              factory={() => newRouteProps[k]}
+            />
+          ))}
+        </Incarnate>
+        {renderChildren instanceof Function
+          ? (renderChildren as Function)(newRouteProps)
+          : renderChildren}
+      </RoutePropListProvider>
+    </RoutePathProvider>
+  );
 };

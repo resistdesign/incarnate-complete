@@ -1,9 +1,10 @@
 import expect from 'expect.js';
 import React from 'react';
-import { render, findByText } from '@testing-library/react';
+import { render, cleanup } from '@testing-library/react';
 import { Incarnate } from './Incarnate';
 
 const suite = {
+  beforeEach: () => cleanup(),
   'should render': () => {
     const inc = render(<Incarnate />);
 
@@ -26,7 +27,7 @@ const suite = {
   'should render its children': async () => {
     const textContent = 'TEXT_CONTENT';
     const inc = render(<Incarnate>{textContent}</Incarnate>);
-    const found = await findByText(inc.container, textContent);
+    const found = await inc.findByText(textContent);
 
     expect(found).to.be.ok();
   },
