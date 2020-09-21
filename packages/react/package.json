@@ -16,7 +16,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' mocha --inline-diffs --require ./mocha-ts-node-compat.js --timeout 30000 --ui exports './src/**/*.spec.tsx'",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' mocha --inline-diffs --require ./mocha-ts-node-compat.js --timeout 30000 --ui exports './src/**/*.spec.+(ts|tsx)'",
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "storybook": "start-storybook -p 6006",

@@ -1,10 +1,10 @@
 import expect from 'expect.js';
 import React, { FC } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { cleanup, render } from '@testing-library/react';
 import { IncarnateRoute } from './IncarnateRoute';
-import { MemoryRouter } from 'react-router-dom';
 import { IncarnateRouteSet } from './IncarnateRouteSet';
-import { LifePod } from '../LifePod';
+import { LifePod } from '../.';
 import { IncarnateRouter, IncarnateRouterProps } from './IncarnateRouter';
 
 const IncarnateMemoryRouter: FC<IncarnateRouterProps> = props => (

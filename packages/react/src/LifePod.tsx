@@ -2,6 +2,7 @@ import {
   cloneElement,
   FC,
   isValidElement,
+  ReactElement,
   useCallback,
   useContext,
   useEffect,
@@ -188,7 +189,7 @@ export const LifePod: FC<LifePodProps> = props => {
       }
     } else if (isValidElement(children)) {
       // If children is a React element, spread childProps.
-      const { props: baseChildProps = {} } = children;
+      const { props: baseChildProps = {} } = children as ReactElement;
 
       return cloneElement(children, {
         ...childProps,

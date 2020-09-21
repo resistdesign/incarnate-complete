@@ -35,3 +35,7 @@ export {
   TraverseNavigationController,
   TraverseController,
 } from './Control/Traverse';
+export {
+  ItemQueueProcessor,
+  ItemQueueProcessorProps,
+} from './Control/ItemQueueProcessor';

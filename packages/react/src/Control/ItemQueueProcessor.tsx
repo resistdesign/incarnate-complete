@@ -18,7 +18,14 @@ export type ItemQueueProcessorProps = {
   batchDelayMS?: number;
   primaryKey?: string;
 } & IncarnateProps;
+export type ItemType = { [key: string]: any };
+export type InputMapType = {
+  [key: string]: ItemType;
+};
+export type ErrorMapType = { [key: string]: any };
+export type ItemProcessorType = (item: ItemType) => ItemType;
 
+// TODO: MAKE TESTS!!!
 export const ItemQueueProcessor: FC<ItemQueueProcessorProps> = props => {
   const {
     batchSize = 5,
