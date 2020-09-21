@@ -1,7 +1,8 @@
 import expect from 'expect.js';
-import React from 'react';
+import React, { FC } from 'react';
 import { render, cleanup } from '@testing-library/react';
 import { Incarnate } from './Incarnate';
+import { LifePod } from './LifePod';
 
 const suite = {
   beforeEach: () => cleanup(),
@@ -44,6 +45,44 @@ const suite = {
 
     expect(incRef.subMap[nestedName]).to.be.ok();
     expect(incRef.subMap[nestedName].name).to.equal(nestedName);
+  },
+  'should share dependencies': async () => {
+    const firstValue = 'FIRST_VALUE';
+    const otherValue = 'OTHER_VALUE';
+    const delimiter = '_';
+    const Comp: FC<{ value?: string }> = props => (
+      <div>
+        {firstValue}
+        {delimiter}
+        {props.value}
+      </div>
+    );
+    const inc = render(
+      <Incarnate>
+        <Incarnate name="Other">
+          <LifePod name="Value" factory={() => otherValue} />
+        </Incarnate>
+        <Incarnate
+          shared={{
+            SomethingElse: 'Other',
+          }}
+        >
+          <LifePod
+            dependencies={{
+              value: 'SomethingElse.Value',
+            }}
+            mapToProps={p => p}
+          >
+            <Comp />
+          </LifePod>
+        </Incarnate>
+      </Incarnate>
+    );
+    const findResult = await inc.findByText(
+      [firstValue, otherValue].join(delimiter)
+    );
+
+    expect(findResult).to.be.ok();
   },
 };
 
