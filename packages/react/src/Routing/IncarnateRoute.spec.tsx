@@ -1,10 +1,21 @@
 import expect from 'expect.js';
-import React from 'react';
+import React, { FC } from 'react';
 import { cleanup, render } from '@testing-library/react';
 import { IncarnateRoute } from './IncarnateRoute';
 import { MemoryRouter } from 'react-router-dom';
 import { IncarnateRouteSet } from './IncarnateRouteSet';
+import { LifePod } from '../LifePod';
+import { IncarnateRouter, IncarnateRouterProps } from './IncarnateRouter';
 
+const IncarnateMemoryRouter: FC<IncarnateRouterProps> = props => (
+  <IncarnateRouter
+    routerType={MemoryRouter}
+    routerProps={{
+      initialEntries: [''],
+    }}
+    {...props}
+  />
+);
 const renderInMemoryRouter = (incRoute: any, props?: { [key: string]: any }) =>
   render(
     <MemoryRouter initialEntries={['']} {...props}>
@@ -117,6 +128,55 @@ const suite = {
 
     expect(nestedParamValueResult).to.be.ok();
     expect(hiddenResult).to.not.be.ok();
+  },
+  'should supply ROUTE_PROPS to Incarnate components': async () => {
+    const paramValue = 'PARAM_VALUE';
+    const anotherParamValue = 'ANOTHER_PARAM_VALUE';
+
+    const ir = render(
+      <IncarnateMemoryRouter
+        routerProps={{
+          initialEntries: [`/shown/${paramValue}/${anotherParamValue}`],
+        }}
+      >
+        <IncarnateRouteSet>
+          <IncarnateRoute subPath="shown">
+            <IncarnateRouteSet>
+              <IncarnateRoute subPath=":value">
+                <LifePod
+                  dependencies={{
+                    params: 'ROUTE_PROPS.params',
+                  }}
+                  mapToProps={({ params: { value: children } }) => ({
+                    children,
+                  })}
+                >
+                  <div />
+                </LifePod>
+                <IncarnateRoute subPath=":anotherValue">
+                  <LifePod
+                    dependencies={{
+                      params: 'ROUTE_PROPS.params',
+                    }}
+                    mapToProps={({ params: { anotherValue: children } }) => ({
+                      children,
+                    })}
+                  >
+                    <div />
+                  </LifePod>
+                </IncarnateRoute>
+              </IncarnateRoute>
+            </IncarnateRouteSet>
+          </IncarnateRoute>
+        </IncarnateRouteSet>
+      </IncarnateMemoryRouter>
+    );
+
+    const paramValueResult = await ir.findByText(paramValue);
+    const anotherParamValueResult = await ir.findByText(anotherParamValue);
+
+    expect(paramValueResult).to.be.ok();
+    expect(anotherParamValueResult).to.be.ok();
   },
 };
 

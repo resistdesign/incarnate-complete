@@ -157,6 +157,25 @@ const suite = {
 
     expect(depValue).to.equal(nestedTextValue);
   },
+  'should map dependencies to props': async () => {
+    const depValue = 'DEP_VALUE';
+    const lp = render(
+      <Incarnate>
+        <LifePod name="Dep" factory={() => depValue} />
+        <LifePod
+          dependencies={{
+            dep: 'Dep',
+          }}
+          mapToProps={({ dep: children }) => ({ children })}
+        >
+          <div />
+        </LifePod>
+      </Incarnate>
+    );
+    const depValueResult = await lp.findByText(depValue);
+
+    expect(depValueResult).to.be.ok();
+  },
 };
 
 export { suite as LifePod };
