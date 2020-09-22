@@ -1,13 +1,13 @@
-import React, { FC, PropsWithChildren } from 'react';
+import React, { FC } from 'react';
 import { LifePod } from '../.';
 
 const DEFAULT_FILTER = () => true;
 
 export type MemoizeProps = {
-  name?: string;
+  name: string;
   dependencyPath: string;
   filter?: (value: any, index: number, array: any[]) => boolean;
-} & PropsWithChildren<any>;
+};
 
 export const Memoize: FC<MemoizeProps> = props => {
   const { name, dependencyPath, filter = DEFAULT_FILTER } = props;
