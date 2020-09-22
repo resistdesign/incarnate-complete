@@ -1,10 +1,10 @@
-import React, { FC, PropsWithChildren } from 'react';
+import React, { FC } from 'react';
 import { LifePod } from '../.';
 
 export type TraverseProps = {
-  name?: string;
+  name: string;
   dependencyPath: string;
-} & PropsWithChildren<any>;
+};
 export type TraverseNavigationController = {
   back: () => void;
   forward: () => void;
