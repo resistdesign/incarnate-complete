@@ -1,10 +1,10 @@
-import React, { FC, PropsWithChildren, useEffect } from 'react';
+import React, { FC, useEffect } from 'react';
 import { LifePod } from '../.';
 
 export type ExplicitlyCachedValueProps = {
-  name?: string;
+  name: string;
   dependencyPath: string;
-} & PropsWithChildren<any>;
+};
 
 /**
  * Use this controller to safeguard against unnecessary updates due to the
@@ -35,7 +35,7 @@ export const ExplicitlyCachedValue: FC<ExplicitlyCachedValueProps> = props => {
       }}
       override
       factory={({ getValue, onValueChange, setCachedValue } = {}) => {
-        if (!(unlisten instanceof Function)) {
+        if (!unlisten) {
           unlisten = onValueChange(() => {
             const depValue = getValue();
 
