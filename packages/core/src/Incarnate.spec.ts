@@ -287,6 +287,56 @@ export default {
         expect(d2Value).to.equal(true);
         expect(d1Value).to.equal(depOneValue);
       },
+      'should create a getter function that continues to update the underlying hashMatrix': () => {
+        const trackedValues: any[] = [];
+        const inc = new Incarnate({
+          subMap: {
+            depOne: {
+              factory: () => ({}),
+            },
+            depTwo: {
+              setters: {
+                setDepOne: 'depOne',
+              },
+              factory: ({ setDepOne }) => {
+                [...new Array(8)].forEach((_x, i) =>
+                  setDepOne(`VALUE_${i}`, `KEY_${i}`)
+                );
+
+                return true;
+              },
+            },
+            depOneWatcher: {
+              dependencies: {
+                depOne: 'depOne',
+              },
+              factory: ({ depOne }) => {
+                trackedValues.push(depOne);
+
+                return true;
+              },
+            },
+          },
+        });
+        const d2 = inc.getDependency('depTwo');
+        const d1W = inc.getDependency('depOneWatcher');
+        const d1WChangeHandler = () => d1W.getValue();
+
+        d1W.addChangeHandler('', d1WChangeHandler);
+
+        d2.getValue();
+
+        d1W.removeChangeHandler('', d1WChangeHandler);
+
+        const [latestDepOneMap] = [...trackedValues].reverse();
+        const latestDepOneMapKeys = Object.keys(latestDepOneMap);
+        const { KEY_0: k0, KEY_7: k7 } = latestDepOneMap;
+
+        expect(trackedValues).to.have.length(8);
+        expect(latestDepOneMapKeys).to.have.length(8);
+        expect(k0).to.equal('VALUE_0');
+        expect(k7).to.equal('VALUE_7');
+      },
     },
   },
 };
