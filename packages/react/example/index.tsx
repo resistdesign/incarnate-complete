@@ -200,14 +200,14 @@ export const App: FC<any> = () => {
                   <br />
                   <br />
                   <button
-                    onClick={randomRangeHistoryController.back}
+                    onClick={() => randomRangeHistoryController.back()}
                     disabled={!randomRangeHistoryController.canUndo()}
                   >
                     Undo
                   </button>
                   &nbsp;
                   <button
-                    onClick={randomRangeHistoryController.forward}
+                    onClick={() => randomRangeHistoryController.forward()}
                     disabled={!randomRangeHistoryController.canRedo()}
                   >
                     Redo
