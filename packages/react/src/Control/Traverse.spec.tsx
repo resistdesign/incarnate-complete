@@ -46,10 +46,10 @@ const suite = {
 
     expect(trv).to.be.ok();
   },
-  'should supply a TraverseController': () => {
+  'should supply a TraverseNavigationController': () => {
     const traverseName = 'TRAVERSE_NAME';
 
-    let tc: TraverseNavigationController | undefined;
+    let tnc: TraverseNavigationController | undefined;
 
     const trv = render(
       <Incarnate>
@@ -62,19 +62,19 @@ const suite = {
           factory={deps => {
             const { trv }: { trv?: TraverseNavigationController } = deps;
 
-            tc = trv;
+            tnc = trv;
           }}
         />
       </Incarnate>
     );
 
     expect(trv).to.be.ok();
-    expect(tc).to.be.an(Object);
-    expect(tc?.back).to.be.a(Function);
-    expect(tc?.canRedo).to.be.a(Function);
-    expect(tc?.canUndo).to.be.a(Function);
-    expect(tc?.clear).to.be.a(Function);
-    expect(tc?.forward).to.be.a(Function);
+    expect(tnc).to.be.an(Object);
+    expect(tnc?.back).to.be.a(Function);
+    expect(tnc?.canRedo).to.be.a(Function);
+    expect(tnc?.canUndo).to.be.a(Function);
+    expect(tnc?.clear).to.be.a(Function);
+    expect(tnc?.forward).to.be.a(Function);
   },
   TraverseNavigationController: {
     canUndo: {
