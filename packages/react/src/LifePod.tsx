@@ -25,6 +25,7 @@ export type LifePodProps = {
   override?: boolean;
   alwaysRender?: boolean;
   onResolveError?: LifePodResolveErrorHandler;
+  errorDependencyPath?: string;
 } & DependencyDeclaration;
 
 const DEFAULT_FACTORY = (...args: any[]) => args;
@@ -117,7 +118,12 @@ const getLifePod = (
 };
 
 export const LifePod: FC<LifePodProps> = props => {
-  const { children, onResolveError, ...otherProps } = props;
+  const {
+    children,
+    onResolveError,
+    errorDependencyPath,
+    ...otherProps
+  } = props;
   const { alwaysRender } = otherProps;
   const factory = getFactoryFromProps(otherProps as LifePodProps);
   const parentIncarnate: INC | undefined = useContext(IncarnateContext);
@@ -155,6 +161,20 @@ export const LifePod: FC<LifePodProps> = props => {
     initialChildProps: childProps,
     initialChildPropsSet: false,
   });
+  const resolveErrorHandler = useCallback(
+    (error: any) => {
+      if (parentIncarnate && typeof errorDependencyPath === 'string') {
+        const errorDep = parentIncarnate.getDependency(errorDependencyPath);
+
+        errorDep.setValue(error);
+      }
+
+      if (!!onResolveError) {
+        onResolveError(error);
+      }
+    },
+    [parentIncarnate, errorDependencyPath, onResolveError]
+  );
   const onLifePodChange = useCallback(() => {
     if (!!lifePod) {
       try {
@@ -169,19 +189,15 @@ export const LifePod: FC<LifePodProps> = props => {
           }
         }
       } catch (error) {
-        if (!!onResolveError) {
-          onResolveError(error);
-        }
+        resolveErrorHandler(error);
       }
     }
-  }, [lifePod, setChildProps, onResolveError]);
+  }, [lifePod, setChildProps, resolveErrorHandler]);
 
   if (!!lifePod) {
     lifePod.addChangeHandler('', onLifePodChange);
 
-    if (!!onResolveError) {
-      lifePod.addErrorHandler('', onResolveError);
-    }
+    lifePod.addErrorHandler('', resolveErrorHandler);
   }
 
   useEffect(() => {
@@ -197,12 +213,10 @@ export const LifePod: FC<LifePodProps> = props => {
       if (!!lifePod) {
         lifePod.removeChangeHandler('', onLifePodChange);
 
-        if (!!onResolveError) {
-          lifePod.removeErrorHandler('', onResolveError);
-        }
+        lifePod.removeErrorHandler('', resolveErrorHandler);
       }
     };
-  }, [lifePod, onLifePodChange, onResolveError]);
+  }, [lifePod, onLifePodChange, resolveErrorHandler]);
 
   const targetChildProps = storage.current.renderedOnce
     ? childProps

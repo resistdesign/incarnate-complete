@@ -176,6 +176,42 @@ const suite = {
 
     expect(depValueResult).to.be.ok();
   },
+  'should store an error at the errorDependencyPath': async () => {
+    const errorValue = { message: 'ERROR_VALUE' };
+    const errorDepPath = 'Errors.TargetDepError';
+    const lp = render(
+      <Incarnate>
+        <LifePod
+          name="DepWithError"
+          factory={() => {
+            throw errorValue;
+          }}
+          errorDependencyPath={errorDepPath}
+        />
+        <LifePod
+          name="TargetDep"
+          dependencies={{
+            dep: 'DepWithError',
+          }}
+          mapToProps={({ dep: children }) => ({ children })}
+        >
+          <div />
+        </LifePod>
+        <LifePod
+          name="ErrorDisplay"
+          dependencies={{
+            ev: errorDepPath,
+          }}
+          factory={({ ev }) => ({ children: ev?.message })}
+        >
+          <div />
+        </LifePod>
+      </Incarnate>
+    );
+    const found = await lp.findByText(errorValue.message);
+
+    expect(found).to.be.ok();
+  },
 };
 
 export { suite as LifePod };
