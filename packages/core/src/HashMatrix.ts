@@ -1,6 +1,48 @@
-import ConfigurableInstance, { ObjectOf } from './ConfigurableInstance';
+import ConfigurableInstance, {
+  IConfigurableInstance,
+  ObjectOf,
+} from './ConfigurableInstance';
 
 export type HashMatrixPathPartType = string | string[];
+
+export interface IHashMatrix extends IConfigurableInstance {
+  /**
+   * The name of this `HashMatrix`.
+   * @type {string}
+   * */
+  name?: string;
+
+  /**
+   * The target path for a proxied `HashMatrix`.
+   * @type {Array|string}
+   * */
+  targetPath?: string | string[];
+
+  /**
+   * An automatically maintained structure that acts as the source of all values.
+   * If set a to a `HashMatrix`, it will be proxied.
+   * @type {Object.<*>|HashMatrix}
+   * */
+  hashMatrix?: any | ObjectOf<any> | HashMatrix;
+
+  /**
+   * The `string` used to delimit all paths.
+   * @type {string}
+   * */
+  pathDelimiter?: string;
+
+  /**
+   * An optional number of milliseconds to wait before invalidating the value of the `HashMatrix`.
+   * @type {number}
+   * */
+  debounceInvalidationMS?: number;
+
+  /**
+   * An optional flag used to prevent invalidation and keep the current value of the `HashMatrix`.
+   * @type {boolean}
+   * */
+  preventInvalidation?: boolean;
+}
 
 /**
  * An object used to invalidate a path.
@@ -60,7 +102,19 @@ export default class HashMatrix extends ConfigurableInstance {
    * */
   pathDelimiter?: string;
 
-  constructor(config: ObjectOf<any> = {}) {
+  /**
+   * An optional number of milliseconds to wait before invalidating the value of the `HashMatrix`.
+   * @type {number}
+   * */
+  debounceInvalidationMS?: number;
+
+  /**
+   * An optional flag used to prevent invalidation and keep the current value of the `HashMatrix`.
+   * @type {boolean}
+   * */
+  preventInvalidation?: boolean;
+
+  constructor(config: IHashMatrix = {}) {
     super(config);
 
     if (typeof this.pathDelimiter !== 'string') {
@@ -421,7 +475,19 @@ export default class HashMatrix extends ConfigurableInstance {
     return this.setPath([], value);
   }
 
+  _invalidationDebounceTimeout?: any;
+
   invalidate() {
-    this.setValue(INVALID);
+    if (!this.preventInvalidation) {
+      if (typeof this.debounceInvalidationMS === 'number') {
+        clearTimeout(this._invalidationDebounceTimeout);
+        this._invalidationDebounceTimeout = setTimeout(
+          () => this.setValue(INVALID),
+          this.debounceInvalidationMS
+        );
+      } else {
+        this.setValue(INVALID);
+      }
+    }
   }
 }

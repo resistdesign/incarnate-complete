@@ -171,7 +171,7 @@ export default class Incarnate extends HashMatrix {
       return this;
     }
 
-    const name = pathArray.shift();
+    const name = pathArray.shift() || '';
     const stringName = `${name}`;
     const subPath = [...pathArray];
 
