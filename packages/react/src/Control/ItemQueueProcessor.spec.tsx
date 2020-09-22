@@ -65,8 +65,6 @@ const suite = {
             factory={(): ItemProcessorType => (item: ItemType) => {
               const uuid = getFakeUUID();
 
-              console.log('<<<PROCESSING ITEM>>>', item);
-
               uuidList.push(uuid);
 
               return {

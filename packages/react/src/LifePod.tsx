@@ -142,14 +142,16 @@ export const LifePod: FC<LifePodProps> = props => {
     memoDeps
   );
   const lifePodValue = useMemo(() => lifePod?.getValue(), [lifePod]);
-  const [childProps, setChildProps] = useState<any | undefined>(lifePodValue);
+  const [{ childProps }, setChildProps] = useState<any | undefined>({
+    childProps: lifePodValue,
+  });
   const onLifePodChange = useCallback(() => {
     if (!!lifePod) {
       try {
         const value = lifePod.getValue();
 
         if (!lifePod.resolving) {
-          setChildProps(value);
+          setChildProps({ childProps: value });
         }
       } catch (error) {
         if (!!onResolveError) {

@@ -25,7 +25,6 @@ export type InputMapType = {
 export type ErrorMapType = { [key: string]: any };
 export type ItemProcessorType = (item: ItemType) => ItemType;
 
-// TODO: MAKE TESTS!!!
 export const ItemQueueProcessor: FC<ItemQueueProcessorProps> = props => {
   const {
     batchSize = 5,
