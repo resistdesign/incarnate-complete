@@ -7,6 +7,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -145,13 +146,27 @@ export const LifePod: FC<LifePodProps> = props => {
   const [{ childProps }, setChildProps] = useState<any | undefined>({
     childProps: lifePodValue,
   });
+  const storage = useRef<{
+    renderedOnce: boolean;
+    initialChildProps: any;
+    initialChildPropsSet: boolean;
+  }>({
+    renderedOnce: false,
+    initialChildProps: childProps,
+    initialChildPropsSet: false,
+  });
   const onLifePodChange = useCallback(() => {
     if (!!lifePod) {
       try {
         const value = lifePod.getValue();
 
         if (!lifePod.resolving) {
-          setChildProps({ childProps: value });
+          if (storage.current.renderedOnce) {
+            setChildProps({ childProps: value });
+          } else {
+            storage.current.initialChildProps = value;
+            storage.current.initialChildPropsSet = true;
+          }
         }
       } catch (error) {
         if (!!onResolveError) {
@@ -170,6 +185,14 @@ export const LifePod: FC<LifePodProps> = props => {
   }
 
   useEffect(() => {
+    if (!storage.current.renderedOnce) {
+      storage.current.renderedOnce = true;
+
+      if (storage.current.initialChildPropsSet) {
+        setChildProps({ childProps: storage.current.initialChildProps });
+      }
+    }
+
     return () => {
       if (!!lifePod) {
         lifePod.removeChangeHandler('', onLifePodChange);
@@ -181,20 +204,26 @@ export const LifePod: FC<LifePodProps> = props => {
     };
   }, [lifePod, onLifePodChange, onResolveError]);
 
-  if (typeof childProps !== 'undefined' || alwaysRender) {
-    // If children is a function, pass childProps.
+  const targetChildProps = storage.current.renderedOnce
+    ? childProps
+    : storage.current.initialChildPropsSet
+    ? storage.current.initialChildProps
+    : childProps;
+
+  if (typeof targetChildProps !== 'undefined' || alwaysRender) {
+    // If children is a function, pass targetChildProps.
     if (children instanceof Function) {
-      if (factory === DEFAULT_FACTORY && childProps instanceof Array) {
-        return children(...childProps);
+      if (factory === DEFAULT_FACTORY && targetChildProps instanceof Array) {
+        return children(...targetChildProps);
       } else {
-        return children(childProps);
+        return children(targetChildProps);
       }
     } else if (isValidElement(children)) {
-      // If children is a React element, spread childProps.
+      // If children is a React element, spread targetChildProps.
       const { props: baseChildProps = {} } = children as ReactElement;
 
       return cloneElement(children, {
-        ...childProps,
+        ...targetChildProps,
         ...baseChildProps,
       });
     } else {
