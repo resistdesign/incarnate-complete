@@ -9,7 +9,7 @@ import {
 } from './ItemQueueProcessor';
 
 const getFakeUUID = () =>
-  [...new Array(6)]
+  [...new Array(4)]
     .map(() => Buffer.from(`${Math.random() * 10}`).toString('base64'))
     .join('_');
 
@@ -53,7 +53,7 @@ const suite = {
     let outputUUIDList: string[] = [];
 
     await new Promise(res => {
-      const tiId = setTimeout(res, 12000);
+      const tiId = setTimeout(res, 1000);
 
       render(
         <Incarnate>
@@ -65,31 +65,14 @@ const suite = {
             factory={(): ItemProcessorType => (item: ItemType) => {
               const uuid = getFakeUUID();
 
+              console.log('<<<PROCESSING ITEM>>>', item);
+
               uuidList.push(uuid);
 
               return {
                 ...item,
                 id: uuid,
               };
-            }}
-          />
-          <ItemQueueProcessor
-            name="IQP"
-            shared={{
-              InputMap: 'InputMap',
-              OutputMap: 'OutputMap',
-              ErrorMap: 'ErrorMap',
-              ItemProcessor: 'ItemProcessor',
-            }}
-            batchDelayMS={100}
-            batchSize={10}
-          />
-          <LifePod
-            dependencies={{
-              im: 'InputMap',
-            }}
-            factory={({ im }) => {
-              console.log('IM:', im);
             }}
           />
           <LifePod
@@ -114,16 +97,22 @@ const suite = {
             setters={{
               setInputMap: 'InputMap',
             }}
-            getters={{
-              getInputMap: 'InputMap',
-            }}
             factory={deps => {
-              const { setInputMap, getInputMap } = deps as IMPopDeps;
+              const { setInputMap } = deps as IMPopDeps;
 
               inputItems.forEach((it, idx) => setInputMap(it, idx));
-
-              console.log('InputMap NOW:', getInputMap());
             }}
+          />
+          <ItemQueueProcessor
+            name="IQP"
+            shared={{
+              InputMap: 'InputMap',
+              OutputMap: 'OutputMap',
+              ErrorMap: 'ErrorMap',
+              ItemProcessor: 'ItemProcessor',
+            }}
+            batchDelayMS={100}
+            batchSize={10}
           />
         </Incarnate>
       );

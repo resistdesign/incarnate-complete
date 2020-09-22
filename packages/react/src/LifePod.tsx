@@ -159,15 +159,15 @@ export const LifePod: FC<LifePodProps> = props => {
     }
   }, [lifePod, setChildProps, onResolveError]);
 
-  useEffect(() => {
-    if (!!lifePod) {
-      lifePod.addChangeHandler('', onLifePodChange);
+  if (!!lifePod) {
+    lifePod.addChangeHandler('', onLifePodChange);
 
-      if (!!onResolveError) {
-        lifePod.addErrorHandler('', onResolveError);
-      }
+    if (!!onResolveError) {
+      lifePod.addErrorHandler('', onResolveError);
     }
+  }
 
+  useEffect(() => {
     return () => {
       if (!!lifePod) {
         lifePod.removeChangeHandler('', onLifePodChange);
