@@ -259,5 +259,34 @@ export default {
         }
       },
     },
+    createSetter: {
+      'should create a getter function that updates the underlying hashMatrix': () => {
+        const depOneValue = 'DEP_ONE_VALUE';
+        const inc = new Incarnate({
+          subMap: {
+            depOne: {
+              factory: () => '',
+            },
+            depTwo: {
+              setters: {
+                setDepOne: 'depOne',
+              },
+              factory: ({ setDepOne }) => {
+                setDepOne(depOneValue);
+
+                return true;
+              },
+            },
+          },
+        });
+        const d2 = inc.getDependency('depTwo');
+        const d2Value = d2.getValue();
+        const d1 = inc.getDependency('depOne');
+        const d1Value = d1.getValue();
+
+        expect(d2Value).to.equal(true);
+        expect(d1Value).to.equal(depOneValue);
+      },
+    },
   },
 };
