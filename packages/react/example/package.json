@@ -7,16 +7,10 @@
     "start": "parcel index.html",
     "build": "parcel build index.html"
   },
-  "dependencies": {
-    "react": "^16.13.1",
-    "react-app-polyfill": "^1.0.0",
-    "react-dom": "^16.13.1",
-    "scheduler": "^0.19.1"
-  },
+  "dependencies": {},
   "alias": {
-    "react": "./node_modules/react",
-    "react-dom": "./node_modules/react-dom/profiling",
-    "scheduler/tracing": "./node_modules/scheduler/tracing-profiling"
+    "react": "../../../node_modules/react",
+    "react-dom": "../../../node_modules/react-dom"
   },
   "devDependencies": {
     "@types/react": "^16.9.11",

@@ -28,7 +28,7 @@ export type LifePodProps = {
   errorDependencyPath?: string;
 } & DependencyDeclaration;
 
-const DEFAULT_FACTORY = (...args: any[]) => args;
+const DEFAULT_FACTORY = (d: any) => d;
 const DEFAULT_MAP_KEY = '__LIFEPODS__';
 
 let LIFEPOD_COUNT = 0;
@@ -50,7 +50,11 @@ const getLifePod = (
 
   const targetFactory = (...args: any[]) => {
     // TRICKY: Always use the current factory.
-    const factory = getFactoryFromProps(props);
+    const factory = getFactoryFromProps({
+      // TRICKY: Default to the default factory if factory is not set and therefore overwritten.
+      factory: DEFAULT_FACTORY,
+      ...props,
+    });
 
     if (!!factory) {
       const [rawDependencies] = args || [];
