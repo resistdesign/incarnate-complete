@@ -2,7 +2,7 @@ import React, { createContext, FC, ReactNode, useContext } from 'react';
 import { useRouteMatch, useLocation, useHistory } from 'react-router-dom';
 import { History, Location } from 'history';
 import QS from 'qs';
-import { Incarnate, LifePod } from '../.';
+import { LifePod } from '../.';
 
 const URL_DELIMITER = '/';
 const QS_OPTIONS = {
@@ -83,7 +83,6 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
   const routePropsList = useContext(IncarnateRoutePropListContext);
   const location = useLocation<any>() as any;
   const history = useHistory<any>() as any;
-
   const matchObject: { [key: string]: any } = !!match ? match : {};
   const newRouteProps: IncarnateRouteValues = {
     ...matchObject,
@@ -113,18 +112,13 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
           override
           factory={() => newRoutePropsList}
         />
-        {!!newMatch && (
-          <Incarnate name={PATH_NAMES.ROUTE_PROPS}>
-            {Object.keys(newRouteProps).map((k: string) => (
-              <LifePod
-                key={`${PATH_NAMES.ROUTE_PROPS}:${k}`}
-                name={k}
-                noCache
-                override
-                factory={() => newRouteProps[k]}
-              />
-            ))}
-          </Incarnate>
+        {!!renderChildren && (
+          <LifePod
+            name={PATH_NAMES.ROUTE_PROPS}
+            noCache
+            override
+            factory={() => newRouteProps}
+          />
         )}
         {renderChildren instanceof Function
           ? (renderChildren as Function)(newRouteProps)
