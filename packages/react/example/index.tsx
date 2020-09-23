@@ -10,7 +10,7 @@ import {
   IncarnateRoute,
   Incarnate,
   LifePod,
-} from '../src/index';
+} from '../src';
 
 const MULTIPLICATION_VALUE_FILTER = n => typeof n === 'number';
 
@@ -26,96 +26,23 @@ export const App: FC<any> = () => {
           },
         }}
       >
-        <Incarnate
-          name="State"
-          shared={{
-            ROUTE_PROPS: 'ROUTE_PROPS',
-          }}
-        >
+        <Incarnate name="Data">
           <LifePod name="RandomRange" factory={() => 10} />
-          <Incarnate
-            name="Multiply"
-            shared={{
-              ROUTE_PROPS: 'ROUTE_PROPS',
-            }}
-          >
-            <LifePod
-              name="X"
-              dependencies={{
-                routeProps: 'ROUTE_PROPS',
-              }}
-              factory={({
-                routeProps: {
-                  params: {
-                    // @ts-ignore
-                    x,
-                  } = {},
-                } = {},
-              } = {}) => {
-                const parsed = parseFloat(x);
-
-                return isNaN(parsed) ? undefined : parsed;
-              }}
-            />
-            <Memoize
-              name="MemX"
-              dependencyPath="X"
-              filter={MULTIPLICATION_VALUE_FILTER}
-            />
-            <LifePod
-              name="Y"
-              dependencies={{
-                routeProps: 'ROUTE_PROPS',
-              }}
-              factory={({
-                routeProps: {
-                  params: {
-                    // @ts-ignore
-                    y,
-                  } = {},
-                } = {},
-              } = {}) => {
-                const parsed = parseFloat(y);
-
-                return isNaN(parsed) ? undefined : parsed;
-              }}
-            />
-            <Memoize
-              name="MemY"
-              dependencyPath="Y"
-              filter={MULTIPLICATION_VALUE_FILTER}
-            />
-          </Incarnate>
-        </Incarnate>
-        <Incarnate
-          name="Data"
-          shared={{
-            State: 'State',
-          }}
-        >
           <LifePod
             name="RandomNumber"
             dependencies={{
-              range: 'State.RandomRange',
+              range: 'RandomRange',
             }}
             factory={({ range = 0 } = {}) => Math.random() * range}
-          />
-          <LifePod
-            name="Product"
-            dependencies={{
-              x: 'State.Multiply.X',
-              y: 'State.Multiply.Y',
-            }}
-            factory={({ x = 2, y = 2 } = {}) => x * y}
           />
         </Incarnate>
         <LifePod
           name="MultiplyNavValues"
           dependencies={{
-            x: 'State.Multiply.X',
-            y: 'State.Multiply.Y',
-            memX: 'State.Multiply.MemX',
-            memY: 'State.Multiply.MemY',
+            x: 'Multiply.X',
+            y: 'Multiply.Y',
+            memX: 'Multiply.MemX',
+            memY: 'Multiply.MemY',
           }}
           factory={({ x, y, memX = [], memY = [] }) => ({
             x: typeof x !== 'number' ? [...memX].pop() : x,
@@ -155,17 +82,17 @@ export const App: FC<any> = () => {
           <IncarnateRoute subPath="random">
             <Traverse
               name="RandomRangeHistoryController"
-              dependencyPath="State.RandomRange"
+              dependencyPath="Data.RandomRange"
             />
             <LifePod
               dependencies={{
-                randomRange: 'State.RandomRange',
+                randomRange: 'Data.RandomRange',
                 randomRangeHistory: 'RandomRangeHistory',
                 randomRangeHistoryController: 'RandomRangeHistoryController',
                 random: 'Data.RandomNumber',
               }}
               setters={{
-                setRandomRange: 'State.RandomRange',
+                setRandomRange: 'Data.RandomRange',
               }}
               invalidators={{
                 invalidateRandom: 'Data.RandomNumber',
@@ -224,11 +151,72 @@ export const App: FC<any> = () => {
             </LifePod>
           </IncarnateRoute>
           <IncarnateRoute subPath="multiply/:x/:y">
+            <Incarnate
+              name="Multiply"
+              shared={{
+                ROUTE_PROPS: 'ROUTE_PROPS',
+              }}
+            >
+              <LifePod
+                name="X"
+                dependencies={{
+                  routeProps: 'ROUTE_PROPS',
+                }}
+                factory={({
+                  routeProps: {
+                    params: {
+                      // @ts-ignore
+                      x,
+                    } = {},
+                  } = {},
+                } = {}) => {
+                  const parsed = parseFloat(x);
+
+                  return isNaN(parsed) ? undefined : parsed;
+                }}
+              />
+              <Memoize
+                name="MemX"
+                dependencyPath="X"
+                filter={MULTIPLICATION_VALUE_FILTER}
+              />
+              <LifePod
+                name="Y"
+                dependencies={{
+                  routeProps: 'ROUTE_PROPS',
+                }}
+                factory={({
+                  routeProps: {
+                    params: {
+                      // @ts-ignore
+                      y,
+                    } = {},
+                  } = {},
+                } = {}) => {
+                  const parsed = parseFloat(y);
+
+                  return isNaN(parsed) ? undefined : parsed;
+                }}
+              />
+              <Memoize
+                name="MemY"
+                dependencyPath="Y"
+                filter={MULTIPLICATION_VALUE_FILTER}
+              />
+            </Incarnate>
+            <LifePod
+              name="Product"
+              dependencies={{
+                x: 'Multiply.X',
+                y: 'Multiply.Y',
+              }}
+              factory={({ x = 2, y = 2 } = {}) => x * y}
+            />
             <LifePod
               dependencies={{
-                x: 'State.Multiply.X',
-                y: 'State.Multiply.Y',
-                product: 'Data.Product',
+                x: 'Multiply.X',
+                y: 'Multiply.Y',
+                product: 'Product',
                 routeProps: 'ROUTE_PROPS',
               }}
             >
