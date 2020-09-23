@@ -163,7 +163,6 @@ export const App: FC<any> = () => {
                   routeProps: 'ROUTE_PROPS',
                 }}
                 factory={({
-                  routeProps,
                   routeProps: {
                     params: {
                       // @ts-ignore
@@ -172,8 +171,6 @@ export const App: FC<any> = () => {
                   } = {},
                 } = {}) => {
                   const parsed = parseFloat(x);
-
-                  console.log(routeProps);
 
                   return isNaN(parsed) ? undefined : parsed;
                 }}
