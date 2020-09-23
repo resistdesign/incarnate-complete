@@ -103,7 +103,7 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
   };
   const newRoutePropsList = [newRouteProps, ...routePropsList];
 
-  return (
+  return !!match ? (
     <RoutePathProvider value={newRoutePath}>
       <RoutePropListProvider value={newRoutePropsList}>
         <LifePod
@@ -112,18 +112,16 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
           override
           factory={() => newRoutePropsList}
         />
-        {!!renderChildren && (
-          <LifePod
-            name={PATH_NAMES.ROUTE_PROPS}
-            noCache
-            override
-            factory={() => newRouteProps}
-          />
-        )}
+        <LifePod
+          name={PATH_NAMES.ROUTE_PROPS}
+          noCache
+          override
+          factory={() => newRouteProps}
+        />
         {renderChildren instanceof Function
           ? (renderChildren as Function)(newRouteProps)
           : renderChildren}
       </RoutePropListProvider>
     </RoutePathProvider>
-  );
+  ) : null;
 };
