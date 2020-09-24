@@ -2,7 +2,7 @@
   "name": "@incarnate/react",
   "description": "Incarnate for React",
   "private": false,
-  "version": "4.0.0",
+  "version": "5.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -39,7 +39,7 @@
   "author": "Ryan Graff",
   "module": "dist/react.esm.js",
   "dependencies": {
-    "@incarnate/core": "^7.0.0",
+    "@incarnate/core": "^7.1.0",
     "history": "^5.0.0",
     "qs": "^6.9.4",
     "react-router-dom": "^5.2.0"
