@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { LifePod } from '../.';
+import { LifePod } from '../LifePod';
 
 const DEFAULT_FILTER = () => true;
 
@@ -21,7 +21,9 @@ export const Memoize: FC<MemoizeProps> = props => {
         depValue: dependencyPath,
       }}
       override
-      factory={({ depValue } = {}) => {
+      factory={(deps: any) => {
+        const { depValue }: { depValue: any } = deps;
+
         const lastValue = value[value.length - 1];
 
         if (depValue !== lastValue) {

@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
-import Incarnate, { IncarnateProps, LifePod } from '../.';
+import { Incarnate, IncarnateProps } from '../Incarnate';
+import { LifePod } from '../LifePod';
 import Queue from './ItemQueueProcessor/Queue';
 import ItemQueueProcessorController, {
   ItemQueueProcessorControllerConfig,
@@ -48,12 +49,19 @@ export const ItemQueueProcessor: FC<ItemQueueProcessorProps> = props => {
         invalidators={{
           invalidateQueueIsValid: 'QueueIsValid',
         }}
-        factory={({
-          queue,
-          errorQueue,
-          inputMap = {},
-          invalidateQueueIsValid,
-        }) => {
+        factory={(deps: any) => {
+          const {
+            queue,
+            errorQueue,
+            inputMap = {},
+            invalidateQueueIsValid,
+          }: {
+            queue: Queue;
+            errorQueue: Queue;
+            inputMap: { [key: string]: any };
+            invalidateQueueIsValid: () => void;
+          } = deps;
+
           const keysToQueue = errorQueue.getUnregisteredKeys(
             Object.keys(inputMap)
           );
@@ -91,18 +99,33 @@ export const ItemQueueProcessor: FC<ItemQueueProcessorProps> = props => {
           setErrorMap: 'ErrorMap',
         }}
         strict
-        factory={async ({
-          itemProcessor,
-          queue,
-          errorQueue,
-          getInputMap,
-          getOutputMap,
-          getErrorMap,
-          setProcessing,
-          setInputMap,
-          setOutputMap,
-          setErrorMap,
-        }) => {
+        factory={async (deps: any) => {
+          const {
+            itemProcessor,
+            queue,
+            errorQueue,
+            getInputMap,
+            getOutputMap,
+            getErrorMap,
+            setProcessing,
+            setInputMap,
+            setOutputMap,
+            setErrorMap,
+          }: {
+            itemProcessor: ItemProcessorType;
+            queue: Queue;
+            errorQueue: Queue;
+            getInputMap:
+              | (() => { [key: string]: any })
+              | ((path?: string | string[]) => any);
+            getOutputMap: () => { [key: string]: any };
+            getErrorMap: () => { [key: string]: any };
+            setProcessing: (value: boolean) => void;
+            setInputMap: (value: { [key: string]: any }) => void;
+            setOutputMap: (value: { [key: string]: any }) => void;
+            setErrorMap: (value: { [key: string]: any }) => void;
+          } = deps;
+
           await new Promise(res => setTimeout(res, batchDelayMS));
 
           const itemKeyList: string[] = queue.getNKeys(batchSize);
@@ -202,7 +225,7 @@ export const ItemQueueProcessor: FC<ItemQueueProcessorProps> = props => {
         invalidators={{
           invalidateQueueUpdater: 'QueueUpdater',
         }}
-        factory={config =>
+        factory={(config: any) =>
           new ItemQueueProcessorController(
             config as ItemQueueProcessorControllerConfig
           )

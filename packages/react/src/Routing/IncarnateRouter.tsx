@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { Incarnate, IncarnateProps } from '../.';
+import { Incarnate, IncarnateProps } from '../Incarnate';
 import { IncarnateRoute } from './IncarnateRoute';
 import {
   BrowserRouter,

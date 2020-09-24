@@ -1,5 +1,5 @@
 import React, { FC, useEffect } from 'react';
-import { LifePod } from '../.';
+import { LifePod } from '../LifePod';
 
 export type ExplicitlyCachedValueProps = {
   name: string;
@@ -13,7 +13,7 @@ export type ExplicitlyCachedValueProps = {
 export const ExplicitlyCachedValue: FC<ExplicitlyCachedValueProps> = props => {
   const { name, dependencyPath = '' } = props;
 
-  let value: any, unlisten: Function;
+  let value: any, unlisten: () => void;
 
   useEffect(() => () => {
     if (!!unlisten) {
@@ -34,7 +34,17 @@ export const ExplicitlyCachedValue: FC<ExplicitlyCachedValueProps> = props => {
         onValueChange: dependencyPath,
       }}
       override
-      factory={({ getValue, onValueChange, setCachedValue } = {}) => {
+      factory={(deps: any) => {
+        const {
+          getValue,
+          onValueChange,
+          setCachedValue,
+        }: {
+          getValue: () => any;
+          onValueChange: (handler: () => void) => () => void;
+          setCachedValue: (value: any) => void;
+        } = deps;
+
         if (!unlisten) {
           unlisten = onValueChange(() => {
             const depValue = getValue();

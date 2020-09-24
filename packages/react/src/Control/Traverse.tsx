@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { LifePod } from '../.';
+import { LifePod } from '../LifePod';
 
 export type TraverseProps = {
   name: string;
@@ -30,7 +30,7 @@ export class TraverseController {
     return this.controller;
   }
 
-  setDepValue?: Function;
+  setDepValue?: (value: any) => void;
 
   past: any[] = [];
   present?: any;
@@ -115,10 +115,15 @@ export const Traverse: FC<TraverseProps> = props => {
         setDepValue: dependencyPath,
       }}
       override
-      factory={({
-        depValue,
-        setDepValue,
-      } = {}): TraverseNavigationController => {
+      factory={(deps: any): TraverseNavigationController => {
+        const {
+          depValue,
+          setDepValue,
+        }: {
+          depValue: any;
+          setDepValue: (value: any) => void;
+        } = deps;
+
         traverseController.setDepValue = setDepValue;
         traverseController.updatePresent(depValue);
 
