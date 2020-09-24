@@ -1,11 +1,11 @@
-import { IConfigurableInstance, ObjectOf } from './ConfigurableInstance';
+import { ObjectOf } from './ConfigurableInstance';
 import { DependencyDeclaration } from './DependencyDeclaration';
-import { HashMatrixPathPartType } from './HashMatrix';
+import { HashMatrixPathPartType, IHashMatrix } from './HashMatrix';
 
 /**
  * Declare an available map of dependencies.
  * */
-export interface SubMapDeclaration extends IConfigurableInstance {
+export interface SubMapDeclaration extends IHashMatrix {
   /**
    * The map of dependencies.
    * @type {Object.<DependencyDeclaration>}
