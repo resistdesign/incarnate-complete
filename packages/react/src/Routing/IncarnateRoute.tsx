@@ -8,8 +8,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { useRouteMatch, useLocation, useHistory } from 'react-router-dom';
-import { History, Location } from 'history';
+import { useLocation, useHistory, matchPath } from 'react-router-dom';
 import QS from 'qs';
 import INC from '@incarnate/core';
 import { ProxyIncarnate } from './ProxyIncarnate';
@@ -37,7 +36,6 @@ export type IncarnateRouteProps = {
   strict?: boolean;
   exact?: boolean;
   sensitive?: boolean;
-  isDefault?: boolean;
 };
 
 export const getQueryObjectFromLocation = ({ search = '' } = {}) => {
@@ -71,78 +69,84 @@ const { Provider: RoutePathProvider } = IncarnateRoutePathContext;
 const { Provider: IncarnateProvider } = IncarnateContext;
 
 export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
-  const { children, subPath = '', isDefault = false, ...routeProps } = props;
+  const { children, subPath = '', ...routeProps } = props;
   const currentRoutePath = useContext(IncarnateRoutePathContext);
   const newRoutePath = getUrl(currentRoutePath, subPath);
   const location = useLocation();
-  const parentMatchHookValue = useRouteMatch({
-    path: getUrl(currentRoutePath),
-    ...routeProps,
-    location,
-  });
-  const parentMatch = isDefault ? parentMatchHookValue : null;
-  const newMatch = useRouteMatch({
+  const history = useHistory();
+  const match = matchPath(location.pathname, {
     path: newRoutePath,
     ...routeProps,
-    location,
+    location: location,
   });
-  const match = isDefault && parentMatch ? parentMatch || newMatch : newMatch;
   const renderChildren = !!match
     ? typeof children !== 'undefined'
       ? children
       : null
     : null;
-  const history = useHistory<any>() as any;
-  const matchObject: { [key: string]: any } = !!match ? match : {};
   const routePropsInvalidator = useRef<Function | undefined>(undefined);
   const parentIncarnate = useContext(IncarnateContext);
   const newRouteProps = useRef<IncarnateRouteValues | undefined>(undefined);
-  const setNewRouteProps = useCallback(() => {
-    newRouteProps.current = {
-      ...matchObject,
-      history,
-      location: location as Location,
-      params: { ...matchObject.params },
-      query: getQueryObjectFromLocation(location),
-      setQuery: (query = {}) => {
-        const { pathname } = location;
+  const setNewRouteProps = useCallback(
+    newHistory => {
+      const newLocation = newHistory.location;
+      const newMatch = matchPath(newLocation?.pathname, {
+        path: newRoutePath,
+        location: newLocation,
+        exact: routeProps.exact,
+        sensitive: routeProps.sensitive,
+        strict: routeProps.strict,
+      });
+      const matchObject = !!newMatch ? newMatch : { params: {} };
 
-        if (!!history) {
-          history.push({
+      newRouteProps.current = {
+        ...matchObject,
+        history: newHistory as any,
+        location: newLocation as any,
+        params: { ...matchObject.params },
+        query: getQueryObjectFromLocation(newLocation),
+        setQuery: (query = {}) => {
+          const { pathname = '' } = newLocation || {};
+
+          newHistory?.push({
             pathname,
             search: createQueryString(query),
           });
-        }
-      },
-    };
-  }, [history, location, matchObject]);
+        },
+      };
+    },
+    [newRoutePath, routeProps.exact, routeProps.sensitive, routeProps.strict]
+  );
   const localIncarnate = useMemo<INC>(
     () =>
       new INC({
         subMap: {
           [PATH_NAMES.ROUTE_PROPS]: {
-            invalidators: {
-              invalidateSelf: PATH_NAMES.ROUTE_PROPS,
-            },
-            factory: ({ invalidateSelf }): IncarnateRouteValues => {
-              routePropsInvalidator.current = invalidateSelf;
-
-              return newRouteProps.current as IncarnateRouteValues;
-            },
+            factory: (): IncarnateRouteValues =>
+              newRouteProps.current as IncarnateRouteValues,
           },
         },
       }),
     []
   );
-  const routeContextIncarnate = useMemo<INC>(() => {
-    setNewRouteProps();
+  const routeContextIncarnate = useMemo<ProxyIncarnate>(() => {
+    routePropsInvalidator.current = parentIncarnate?.createInvalidator(
+      newRoutePath
+    );
+    setNewRouteProps(history);
 
     return new ProxyIncarnate(parentIncarnate, localIncarnate);
-  }, [parentIncarnate, localIncarnate, setNewRouteProps]);
+  }, [
+    history,
+    parentIncarnate,
+    localIncarnate,
+    setNewRouteProps,
+    newRoutePath,
+  ]);
 
   useEffect(() => {
-    const unlisten = history.listen(() => {
-      setNewRouteProps();
+    const unlisten = history?.listen(() => {
+      setNewRouteProps(history);
 
       if (routePropsInvalidator.current instanceof Function) {
         routePropsInvalidator.current();

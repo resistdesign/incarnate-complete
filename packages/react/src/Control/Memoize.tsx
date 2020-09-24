@@ -28,8 +28,6 @@ export const Memoize: FC<MemoizeProps> = props => {
           value = [...value, depValue].filter(filter);
         }
 
-        console.log(value);
-
         return value;
       }}
     />
