@@ -130,19 +130,13 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
     []
   );
   const routeContextIncarnate = useMemo<ProxyIncarnate>(() => {
-    routePropsInvalidator.current = parentIncarnate?.createInvalidator(
-      newRoutePath
+    routePropsInvalidator.current = localIncarnate?.createInvalidator(
+      PATH_NAMES.ROUTE_PROPS
     );
     setNewRouteProps(history);
 
     return new ProxyIncarnate(parentIncarnate, localIncarnate);
-  }, [
-    history,
-    parentIncarnate,
-    localIncarnate,
-    setNewRouteProps,
-    newRoutePath,
-  ]);
+  }, [history, parentIncarnate, localIncarnate, setNewRouteProps]);
 
   useEffect(() => {
     const unlisten = history?.listen(() => {
