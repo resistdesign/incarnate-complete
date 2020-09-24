@@ -6,14 +6,15 @@ export default class Queue {
 
   queue: { [key: string]: string } = {};
 
-  getUnregisteredKeys = (keys = []) => keys.filter(k => !this.queue[k]);
+  getUnregisteredKeys = (keys: string[] = []) =>
+    keys.filter(k => !this.queue[k]);
 
   isProcessing = () =>
     Object.keys(this.queue).filter(
       k => this.queue[k] === Queue.STATUS.PROCESSING
     ).length > 0;
 
-  addKeys = (keys = []) =>
+  addKeys = (keys: string[] = []) =>
     keys.forEach(k => {
       if (this.queue[k] !== Queue.STATUS.PROCESSING) {
         this.queue[k] = Queue.STATUS.QUEUED;
