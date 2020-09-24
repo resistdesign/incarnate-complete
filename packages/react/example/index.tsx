@@ -44,9 +44,9 @@ export const App: FC<any> = () => {
             memX: 'Multiply.MemX',
             memY: 'Multiply.MemY',
           }}
-          factory={({ x, y, memX = [], memY = [] }) => ({
-            x: typeof x !== 'number' ? [...memX].pop() : x,
-            y: typeof y !== 'number' ? [...memY].pop() : y,
+          factory={({ memX = [], memY = [] }) => ({
+            x: [...memX].pop(),
+            y: [...memY].pop(),
           })}
         />
         <LifePod
@@ -65,7 +65,10 @@ export const App: FC<any> = () => {
                 Random Number
               </button>
               &nbsp;
-              <button onClick={() => history.push(`/multiply/${x}/${y}`)}>
+              <button
+                title={`${x}, ${y}`}
+                onClick={() => history.push(`/multiply/${x}/${y}`)}
+              >
                 Multiply
               </button>
               &nbsp;
@@ -77,7 +80,7 @@ export const App: FC<any> = () => {
             </div>
           )}
         </LifePod>
-        <Memoize name="RandomRangeHistory" dependencyPath="State.RandomRange" />
+        <Memoize name="RandomRangeHistory" dependencyPath="Data.RandomRange" />
         <IncarnateRouteSet defaultSubPath="random">
           <IncarnateRoute subPath="random">
             <Traverse

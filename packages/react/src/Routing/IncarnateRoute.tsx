@@ -4,12 +4,15 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useMemo,
   useRef,
 } from 'react';
 import { useRouteMatch, useLocation, useHistory } from 'react-router-dom';
 import { History, Location } from 'history';
 import QS from 'qs';
-import { LifePod } from '../.';
+import INC from '@incarnate/core';
+import { ProxyIncarnate } from './ProxyIncarnate';
+import { IncarnateContext } from '../Context';
 
 const URL_DELIMITER = '/';
 const QS_OPTIONS = {
@@ -59,14 +62,12 @@ export const getUrl = (parentUrl = '', url = '') => {
 };
 export const ROUTE_PATH_DELIMITER = '/';
 export const PATH_NAMES = {
-  ROUTE_PROPS_LIST: 'ROUTE_PROPS_LIST',
   ROUTE_PROPS: 'ROUTE_PROPS',
 };
 export const IncarnateRoutePathContext = createContext<string>('');
-export const IncarnateRoutePropListContext = createContext<any[]>([]);
 
 const { Provider: RoutePathProvider } = IncarnateRoutePathContext;
-const { Provider: RoutePropListProvider } = IncarnateRoutePropListContext;
+const { Provider: IncarnateProvider } = IncarnateContext;
 
 export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
   const { children, subPath = '', isDefault = false, ...routeProps } = props;
@@ -90,7 +91,6 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
       ? children
       : null
     : null;
-  const routePropsList = useContext(IncarnateRoutePropListContext);
   const history = useHistory<any>() as any;
   const matchObject: { [key: string]: any } = !!match ? match : {};
   const newRouteProps: IncarnateRouteValues = {
@@ -110,9 +110,29 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
       }
     },
   };
-  const newRoutePropsList = [newRouteProps, ...routePropsList];
   const routePropsInvalidator = useRef<Function | undefined>(undefined);
-  const getRouteProps = useRef(() => newRouteProps);
+  const parentIncarnate = useContext(IncarnateContext);
+  const routeContextIncarnate = useMemo<INC>(
+    () =>
+      new ProxyIncarnate(
+        parentIncarnate,
+        new INC({
+          subMap: {
+            [PATH_NAMES.ROUTE_PROPS]: {
+              invalidators: {
+                invalidateSelf: PATH_NAMES.ROUTE_PROPS,
+              },
+              factory: ({ invalidateSelf }) => {
+                routePropsInvalidator.current = invalidateSelf;
+
+                return newRouteProps;
+              },
+            },
+          },
+        })
+      ),
+    [parentIncarnate, newRouteProps]
+  );
 
   useEffect(() => {
     const unlisten = history.listen(() => {
@@ -121,46 +141,20 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
       }
     });
 
-    getRouteProps.current = () => newRouteProps;
-
-    if (routePropsInvalidator.current instanceof Function) {
-      // TRICKY: Invalidate route props immediately so that the route props LifePod override takes effect.
-      routePropsInvalidator.current();
-    }
-
     return () => {
       if (unlisten instanceof Function) {
         unlisten();
       }
     };
-  }, [history, newRouteProps]);
+  }, [history]);
 
   return !!match ? (
     <RoutePathProvider value={newRoutePath}>
-      <RoutePropListProvider value={newRoutePropsList}>
-        <LifePod
-          name={PATH_NAMES.ROUTE_PROPS_LIST}
-          noCache
-          override
-          factory={() => newRoutePropsList}
-        />
-        <LifePod
-          name={PATH_NAMES.ROUTE_PROPS}
-          noCache
-          override
-          invalidators={{
-            invalidateSelf: PATH_NAMES.ROUTE_PROPS,
-          }}
-          factory={({ invalidateSelf }) => {
-            routePropsInvalidator.current = invalidateSelf;
-
-            return getRouteProps.current();
-          }}
-        />
+      <IncarnateProvider value={routeContextIncarnate}>
         {renderChildren instanceof Function
           ? (renderChildren as Function)(newRouteProps)
           : renderChildren}
-      </RoutePropListProvider>
+      </IncarnateProvider>
     </RoutePathProvider>
   ) : null;
 };
