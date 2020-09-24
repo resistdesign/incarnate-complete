@@ -45,7 +45,7 @@ const suite = {
     );
 
     expect(m).to.be.ok();
-    expect(memValue).to.eql([undefined, ...testValueList]);
+    expect(memValue).to.eql(testValueList);
   },
   'should filter memoized values': () => {
     const depPath = 'Dep.Path';

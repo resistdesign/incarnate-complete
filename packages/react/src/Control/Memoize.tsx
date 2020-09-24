@@ -22,9 +22,15 @@ export const Memoize: FC<MemoizeProps> = props => {
       }}
       override
       factory={({ depValue } = {}) => {
-        value = [...value, depValue].filter(filter);
+        const lastValue = value[value.length - 1];
 
-        return [...value];
+        if (depValue !== lastValue) {
+          value = [...value, depValue].filter(filter);
+        }
+
+        console.log(value);
+
+        return value;
       }}
     />
   );

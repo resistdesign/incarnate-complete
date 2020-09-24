@@ -2,6 +2,7 @@ import React, {
   createContext,
   FC,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -93,49 +94,56 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
     : null;
   const history = useHistory<any>() as any;
   const matchObject: { [key: string]: any } = !!match ? match : {};
-  const newRouteProps: IncarnateRouteValues = {
-    ...matchObject,
-    history,
-    location: location as Location,
-    params: { ...matchObject.params },
-    query: getQueryObjectFromLocation(location),
-    setQuery: (query = {}) => {
-      const { pathname } = location;
-
-      if (!!history) {
-        history.push({
-          pathname,
-          search: createQueryString(query),
-        });
-      }
-    },
-  };
   const routePropsInvalidator = useRef<Function | undefined>(undefined);
   const parentIncarnate = useContext(IncarnateContext);
-  const routeContextIncarnate = useMemo<INC>(
-    () =>
-      new ProxyIncarnate(
-        parentIncarnate,
-        new INC({
-          subMap: {
-            [PATH_NAMES.ROUTE_PROPS]: {
-              invalidators: {
-                invalidateSelf: PATH_NAMES.ROUTE_PROPS,
-              },
-              factory: ({ invalidateSelf }) => {
-                routePropsInvalidator.current = invalidateSelf;
+  const newRouteProps = useRef<IncarnateRouteValues | undefined>(undefined);
+  const setNewRouteProps = useCallback(() => {
+    newRouteProps.current = {
+      ...matchObject,
+      history,
+      location: location as Location,
+      params: { ...matchObject.params },
+      query: getQueryObjectFromLocation(location),
+      setQuery: (query = {}) => {
+        const { pathname } = location;
 
-                return newRouteProps;
-              },
+        if (!!history) {
+          history.push({
+            pathname,
+            search: createQueryString(query),
+          });
+        }
+      },
+    };
+  }, [history, location, matchObject]);
+  const localIncarnate = useMemo<INC>(
+    () =>
+      new INC({
+        subMap: {
+          [PATH_NAMES.ROUTE_PROPS]: {
+            invalidators: {
+              invalidateSelf: PATH_NAMES.ROUTE_PROPS,
+            },
+            factory: ({ invalidateSelf }): IncarnateRouteValues => {
+              routePropsInvalidator.current = invalidateSelf;
+
+              return newRouteProps.current as IncarnateRouteValues;
             },
           },
-        })
-      ),
-    [parentIncarnate, newRouteProps]
+        },
+      }),
+    []
   );
+  const routeContextIncarnate = useMemo<INC>(() => {
+    setNewRouteProps();
+
+    return new ProxyIncarnate(parentIncarnate, localIncarnate);
+  }, [parentIncarnate, localIncarnate, setNewRouteProps]);
 
   useEffect(() => {
     const unlisten = history.listen(() => {
+      setNewRouteProps();
+
       if (routePropsInvalidator.current instanceof Function) {
         routePropsInvalidator.current();
       }
@@ -146,13 +154,13 @@ export const IncarnateRoute: FC<IncarnateRouteProps> = props => {
         unlisten();
       }
     };
-  }, [history]);
+  }, [history, setNewRouteProps]);
 
   return !!match ? (
     <RoutePathProvider value={newRoutePath}>
       <IncarnateProvider value={routeContextIncarnate}>
         {renderChildren instanceof Function
-          ? (renderChildren as Function)(newRouteProps)
+          ? (renderChildren as Function)(newRouteProps.current)
           : renderChildren}
       </IncarnateProvider>
     </RoutePathProvider>
