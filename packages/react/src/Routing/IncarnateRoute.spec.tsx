@@ -178,6 +178,60 @@ const suite = {
     expect(paramValueResult).to.be.ok();
     expect(anotherParamValueResult).to.be.ok();
   },
+  'should update ROUTE_PROPS when the history location changes': async () => {
+    const testTextPrefix = 'PRODUCT=';
+
+    let history: any;
+
+    const ir = render(
+      <IncarnateMemoryRouter
+        routerProps={{
+          initialEntries: ['/multiply/2/2'],
+        }}
+      >
+        <IncarnateRoute subPath="multiply/:x/:y">
+          <LifePod
+            dependencies={{
+              routeProps: 'ROUTE_PROPS',
+            }}
+            mapToProps={({ routeProps }) => {
+              const { params: { x = 2, y = 2 } = {} } = routeProps || {
+                params: {},
+              };
+              const product = parseInt(`${x}`, 10) * parseInt(`${y}`);
+
+              history = routeProps.history;
+
+              return { children: `${testTextPrefix}${product}` };
+            }}
+          >
+            <div />
+          </LifePod>
+        </IncarnateRoute>
+      </IncarnateMemoryRouter>
+    );
+    const initialFound = await ir.findByText([testTextPrefix, 4].join(''));
+
+    await new Promise(res => {
+      let resTO: any;
+
+      const unlisten = history.listen(() => {
+        clearTimeout(resTO);
+
+        unlisten();
+
+        res();
+      });
+
+      resTO = setTimeout(res, 1000);
+      history.push('/multiply/3/6');
+    });
+
+    const finalFound = await ir.findByText([testTextPrefix, 18].join(''));
+
+    expect(initialFound).to.be.ok();
+    expect(finalFound).to.be.ok();
+  },
 };
 
 export { suite as IncarnateRoute };
