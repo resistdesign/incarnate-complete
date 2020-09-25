@@ -75,6 +75,8 @@ export const App: FC<any> = () => {
               <button onClick={() => history.push('/query-interactions')}>
                 Query Interactions
               </button>
+              &nbsp;
+              <button onClick={() => history.push('/routing')}>Routing</button>
               <br />
               <br />
             </div>
@@ -293,6 +295,20 @@ export const App: FC<any> = () => {
                 />
               )}
             </LifePod>
+          </IncarnateRoute>
+          <IncarnateRoute subPath="routing">
+            Routing
+            <br />
+            <a href="./another-sub-path">Another Sub-Path</a>
+            <br />
+            <IncarnateRouteSet defaultSubPath="sub-path">
+              <IncarnateRoute subPath="sub-path">
+                Default Sub-Path
+              </IncarnateRoute>
+              <IncarnateRoute subPath="another-sub-path">
+                Another Sub-Path
+              </IncarnateRoute>
+            </IncarnateRouteSet>
           </IncarnateRoute>
         </IncarnateRouteSet>
       </IncarnateRouter>
