@@ -1,5 +1,6 @@
-import { FC, useEffect } from 'react';
+import { FC, useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import { getUrl, IncarnateRoutePathContext } from './IncarnateRoute';
 
 export type IncarnateRedirectProps = {
   to: string;
@@ -8,15 +9,17 @@ export type IncarnateRedirectProps = {
 
 export const IncarnateRedirect: FC<IncarnateRedirectProps> = props => {
   const { to, replace } = props;
+  const currentRoutePath = useContext(IncarnateRoutePathContext);
+  const newRoutePath = getUrl(currentRoutePath, to);
   const history = useHistory();
 
   useEffect(() => {
     if (replace) {
-      history.replace(to);
+      history.replace(newRoutePath);
     } else {
-      history.push(to);
+      history.push(newRoutePath);
     }
-  }, [to, history, replace]);
+  }, [newRoutePath, history, replace]);
 
   return null;
 };
