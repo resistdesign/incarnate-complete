@@ -150,7 +150,9 @@ export const getRequestResponse = async ({
       },
     },
   });
-  const [packageName, serviceName, methodName] = cleanPathParts;
+  const [packageName, serviceName, methodName] = cleanPathParts.map(p =>
+    typeof p === 'string' ? toCamelCase(p) : p
+  );
   const methodNameIsPrivate = getMethodNameIsPrivate(methodName);
   const args = body instanceof Array ? body : [];
 
@@ -194,8 +196,7 @@ export const getRequestResponse = async ({
       return getResponseWithCORS(statusCode, responseData);
     }
 
-    const camelCaseMethodName = toCamelCase(methodName);
-    const { [camelCaseMethodName]: serviceMethod } = serviceInstance;
+    const { [methodName]: serviceMethod } = serviceInstance;
 
     if (serviceMethod instanceof Function) {
       try {
