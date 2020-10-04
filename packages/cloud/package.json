@@ -2,7 +2,7 @@
   "name": "@incarnate/cloud",
   "description": "Cloud Function Middleware for Incarnate",
   "private": false,
-  "version": "5.1.0",
+  "version": "5.1.1",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
