@@ -32,7 +32,7 @@ import { ObjectOf } from '../../types/base';
  * */
 export const getRequestResponse = async ({
   incarnateConfig = {},
-  allowedPaths = [],
+  allowedPaths,
   allowedOrigin = '',
   dependencyResolutionTimeoutMS = 300000,
   event = {},
@@ -88,7 +88,7 @@ export const getRequestResponse = async ({
   }
 
   // SECURITY: IMPORTANT: Only expose allowed paths. (`/package/service/method`)
-  if (allowedPaths.indexOf(path) === -1) {
+  if (allowedPaths && allowedPaths.indexOf(path) === -1) {
     return getResponseWithCORS(404, { message: 'Not Found' });
   }
 
